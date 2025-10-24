@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>ATAC-seq Handbook — Conda Setup (macOS)</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;line-height:1.6;margin:2rem;color:#0f172a;background:#fbfdff}
+    h1{font-size:1.6rem;margin-bottom:.1rem}
+    h2{font-size:1.05rem;margin-top:1.0rem}
+    p.lead{color:#334155;margin-top:0}
+    .cmd{background:#0b1220;color:#e6eef8;padding:.8rem;border-radius:8px;overflow:auto;font-family:ui-monospace,Menlo,Monaco,monospace}
+    .copy{background:#0ea5a4;color:white;border:none;padding:.35rem .6rem;border-radius:6px;cursor:pointer;margin-left:.5rem}
+    .panel{background:white;border:1px solid #e6eef8;padding:1rem;border-radius:8px;margin-top:.75rem}
+    ul{margin-top:.25rem}
+    .note{display:inline-block;background:#fff7ed;border:1px solid #ffedd5;color:#92400e;padding:.4rem .6rem;border-radius:6px}
+    footer{margin-top:1.2rem;color:#475569;font-size:.95rem}
+  </style>
+</head>
+<body>
+  <h1>Conda setup on macOS (Apple Silicon)</h1>
+  <p class="lead">This chapter walks you through installing Miniconda, configuring Bioconda channels, creating an isolated environment for bioinformatics tools, and verifying everything works. Explanations are detailed and concrete so a researcher with little command-line experience can follow along.</p>
+
+  <section class="panel" aria-labelledby="why">
+    <h2 id="why">Why use Conda + Bioconda?</h2>
+    <p>
+      Conda is a package and environment manager that <strong>solves complicated software dependencies</strong> for you. Bioconda is a community channel containing thousands of bioinformatics packages (samtools, fastqc, seqtk, etc.). Using Conda + Bioconda lets you install these tools reliably without manual compilation or conflicting library versions.
+    </p>
+    <ul>
+      <li><strong>Isolated environments</strong> prevent tools from clashing with each other.</li>
+      <li><strong>Reproducibility:</strong> share an environment file so others can recreate your software stack exactly.</li>
+      <li><strong>Simplicity:</strong> most tools install with one command.</li>
+    </ul>
+  </section>
+
+  <section class="panel" aria-labelledby="install">
+    <h2 id="install">Step 1 — Install Miniconda (Apple Silicon)</h2>
+    <p>Open the Terminal app, then run these commands exactly. They download the installer and run it.</p>
+
+    <div class="cmd" id="cmd-install">
+<pre>curl -O https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-arm64.sh
+bash Miniconda3-latest-MacOSX-arm64.sh
+</pre>
+    </div>
+    <div style="margin-top:.5rem">
+      <button class="copy" onclick="copyText('cmd-install')">Copy commands</button>
+      <span class="note">When the script runs, follow prompts. Accept license, choose install location (default is fine), and allow initialization when asked.</span>
+    </div>
+    <p style="margin-top:.4rem"><strong>Tip:</strong> If your Mac uses Intel (older Macs), use the x86 installer instead — ask me and I’ll add that command.</p>
+  </section>
+
+  <section class="panel" aria-labelledby="init">
+    <h2 id="init">Step 2 — Initialize Conda in your shell</h2>
+    <p>After the installer finishes, either close & re-open Terminal or run the command for your shell:</p>
+
+    <div class="cmd" id="cmd-init">
+<pre># for zsh (default on recent macOS)
+source ~/.zshrc
+
+# or for bash
+source ~/.bash_profile
+
+# check conda works
+conda --version
+</pre>
+    </div>
+    <div style="margin-top:.5rem"><button class="copy" onclick="copyText('cmd-init')">Copy</button></div>
+
+    <p><strong>Expected output</strong>: something like <code>conda 23.9.0</code>. If you see an error, check the installer output to confirm initialization was allowed or manually add conda to your PATH following the installer's instructions.</p>
+  </section>
+
+  <section class="panel" aria-labelledby="channels">
+    <h2 id="channels">Step 3 — Configure Bioconda channels (correct order)</h2>
+    <p>
+      Channel order matters. The recommended order is:
+      <strong>conda-forge &rarr; bioconda &rarr; defaults</strong> with strict channel priority. This ensures packages built for conda-forge are preferred while allowing bioconda packages to resolve correctly.
+    </p>
+
+    <div class="cmd" id="cmd-channels">
+<pre>conda config --add channels conda-forge
+conda config --add channels bioconda
+conda config --add channels defaults
+conda config --set channel_priority strict
+
+# verify
+conda config --show channels
+</pre>
+    </div>
+    <div style="margin-top:.5rem"><button class="copy" onclick="copyText('cmd-channels')">Copy</button></div>
+
+    <p><strong>What you should see:</strong></p>
+    <div class="cmd">
+<pre>channels:
+  - conda-forge
+  - bioconda
+  - defaults
+</pre>
+    </div>
+
+    <p><strong>Why strict priority?</strong> It prevents mixing incompatible builds from different channels and makes dependency resolution more reliable.</p>
+  </section>
+
+  <section class="panel" aria-labelledby="envs">
+    <h2 id="envs">Step 4 — Create a dedicated environment for tools</h2>
+    <p>Never install many tools into the <code>(base)</code> environment. Create an environment named <code>bio-tools</code> for our small test set (seqtk + fastqc):</p>
+
+    <div class="cmd" id="cmd-env">
+<pre>conda create -n bio-tools -c bioconda seqtk fastqc
+
+# accept prompts (type y then Enter)
+conda activate bio-tools
+</pre>
+    </div>
+    <div style="margin-top:.5rem"><button class="copy" onclick="copyText('cmd-env')">Copy</button></div>
+
+    <p>
+      After activation you should see your prompt change from <code>(base)</code> to <code>(bio-tools)</code>.
+    </p>
+
+    <h3>Useful environment commands</h3>
+    <div class="cmd" id="cmd-env-help">
+<pre># list environments
+conda env list
+
+# export environment to a YAML file for reproducibility
+conda env export --name bio-tools > meta/bio-tools-env.yml
+
+# remove environment (if broken)
+conda deactivate
+conda remove -n bio-tools --all
+</pre>
+    </div>
+    <div style="margin-top:.5rem"><button class="copy" onclick="copyText('cmd-env-help')">Copy</button></div>
+  </section>
+
+  <section class="panel" aria-labelledby="test">
+    <h2 id="test">Step 5 — Test installation</h2>
+    <p>Try running the tools you installed to verify they work:</p>
+
+    <div class="cmd" id="cmd-test">
+<pre>seqtk --help
+fastqc --version
+</pre>
+    </div>
+    <div style="margin-top:.5rem"><button class="copy" onclick="copyText('cmd-test')">Copy</button></div>
+
+    <p>If you see usage text for <code>seqtk</code> and a version line for <code>fastqc</code>, you are ready.</p>
+  </section>
+
+  <section class="panel" aria-labelledby="troubleshoot">
+    <h2 id="troubleshoot">Troubleshooting & notes</h2>
+    <ul>
+      <li><strong>If conda command not found</strong>: re-open Terminal or run <code>source ~/.zshrc</code> (or the shell file the installer modified).</li>
+      <li><strong>Package not found</strong>: ensure channels are in the right order and run <code>conda config --show channels</code>.</li>
+      <li><strong>Solver takes long / fails</strong>: try creating smaller environments, avoid mixing pip-installed system Python packages inside conda envs for complex bio packages.</li>
+      <li><strong>Disk space</strong>: conda environments can be large; check free disk space with <code>df -h</code>.</li>
+    </ul>
+  </section>
+
+  <script>
+    function copyText(id){
+      const text = document.getElementById(id).innerText;
+      navigator.clipboard.writeText(text).then(()=>{ alert('Copied to clipboard'); }, ()=>{ alert('Copy failed — select and copy manually'); });
+    }
+  </script>
+</body>
+</html>
