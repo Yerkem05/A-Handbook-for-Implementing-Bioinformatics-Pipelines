@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>ATAC-seq — Concept & Pipeline Overview</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    body { font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; color:#0f172a; background:#fbfdff; padding:2rem; line-height:1.6; }
+    h1 { font-size:1.8rem; margin-bottom:0.2rem; }
+    h2 { font-size:1.15rem; margin-top:1.1rem; }
+    h3 { font-size:1.0rem; margin-top:.8rem; }
+    .lead { color:#334155; margin-bottom:1rem; }
+    .panel { background:#fff; border:1px solid #e6eef8; padding:1rem; border-radius:8px; margin-top:.75rem; }
+    .cmd { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace; background:#0f172a; color:#e6eef8; padding:.75rem; border-radius:8px; overflow:auto; }
+    ul { margin-top:.25rem 0 0 1rem; }
+    li { margin-bottom:.35rem; }
+    .note { display:inline-block; background:#fff7ed; border:1px solid #ffedd5; color:#92400e; padding:.4rem .6rem; border-radius:6px; }
+    .two-col { display:flex; gap:1rem; }
+    .col { flex:1; min-width:240px; }
+    .gloss { background:#f1f5f9; padding:.6rem; border-radius:6px; }
+    .check { background:#ecfeff; padding:.6rem; border-radius:6px; }
+    footer { margin-top:1.2rem; color:#475569; font-size:.95rem; }
+    a { color:#0b78a6; }
+  </style>
+</head>
+<body>
+  <h1>ATAC-seq — What it is and a beginner-friendly pipeline overview</h1>
+  <p class="lead">
+    This chapter explains the biological idea behind ATAC-seq (Assay for Transposase-Accessible Chromatin), why it is typically run with paired-end sequencing, and the typical analysis stages — from raw FASTQ files to biological interpretation. Each section explains <em>what</em> happens, <em>why</em> it matters, and <em>what to expect</em> so you can follow along without deep computational experience.
+  </p>
+
+  <section class="panel" aria-labelledby="what-is">
+    <h2 id="what-is">1. What is ATAC-seq? (short, conceptual)</h2>
+    <p>
+      <strong>ATAC-seq</strong> stands for <em>Assay for Transposase-Accessible Chromatin using sequencing</em>. It uses a hyperactive transposase (Tn5) loaded with sequencing adapters. Tn5 preferentially inserts adapters into regions of open (accessible) chromatin — locations where DNA is not tightly bound by nucleosomes or other proteins. After Tn5 insertion, those DNA fragments are amplified and sequenced. Regions with many insertions correspond to accessible regulatory elements (promoters, enhancers).
+    </p>
+
+    <p>
+      Key conceptual points:
+      <ul>
+        <li><strong>Tn5 insertion equals signal:</strong> more insertions → more accessibility.</li>
+        <li><strong>Fragments report chromatin structure:</strong> short fragments often come from nucleosome-free regions; periodic fragment lengths (≈150 bp multiples) reflect nucleosome spacing.</li>
+        <li><strong>Tn5 bias & offset:</strong> because Tn5 inserts adapters at slightly offset positions relative to the actual cut site, many analyses apply a small shift (Tn5 offset) to align reads correctly to insertion events.</li>
+      </ul>
+    </p>
+
+    <p class="note">
+      Historical reference: Jason Buenrostro et al. introduced ATAC-seq in 2013 (Nature Methods / Nature), and the method is now widely used in epigenetics research.
+    </p>
+  </section>
+
+  <section class="panel" aria-labelledby="paired-end">
+    <h2 id="paired-end">2. Single-end vs paired-end sequencing for ATAC-seq — short answer</h2>
+    <p>
+      <strong>Always prefer paired-end sequencing for ATAC-seq.</strong> Each ATAC fragment has two ends (two Tn5 insertion sites). Paired-end reads let you reconstruct the full fragment length and exactly where Tn5 inserted on both sides — this is essential for fragment-length analysis, nucleosome calling, and correct mapping of insertion sites. Using single-end reads discards half of that information and reduces the sensitivity of downstream analyses.
+    </p>
+
+    <p class="gloss">
+      Typical recommendation for standard experiments: <strong>~10 million read pairs per sample</strong> (i.e., 10M clusters passing filter). This is sufficient for routine differential accessibility and motif analyses for many sample types. For genotyping or very deep studies, adjust accordingly.
+    </p>
+  </section>
+
+  <section class="panel" aria-labelledby="pipeline-overview">
+    <h2 id="pipeline-overview">3. High-level pipeline overview — three main stages</h2>
+    <p>ATAC-seq analysis can be thought of in three major stages. Each stage breaks down into concrete steps (below) with the usual tools given as examples.</p>
+
+    <div class="two-col" style="margin-top:.5rem">
+      <div class="col">
+        <h3>Stage A — Data processing (raw → cleaned alignments)</h3>
+        <ul>
+          <li><strong>Quality control of raw reads</strong> (FastQC): check per-base quality, adapter content, overrepresented sequences.</li>
+          <li><strong>Adapter trimming</strong> (Trim Galore / Cutadapt): remove sequencing adapters, especially important if many short fragments exist.</li>
+          <li><strong>Alignment</strong> to the reference genome (Bowtie2 / BWA): map reads to genome; use parameters that preserve paired-end information and allow fragment length filtering.</li>
+          <li><strong>Filtering</strong> (SAMtools / Picard): remove mitochondrial reads (often abundant in ATAC), low-quality mappings, and PCR duplicates (or mark duplicates depending on downstream needs).</li>
+          <li><strong>Tn5 offset adjustment</strong>: shift alignments by +4/−5 bp (strand-specific) to center reads on cut sites for insertion calling.</li>
+        </ul>
+      </div>
+
+      <div class="col">
+        <h3>Stage B — Peak calling & peak set construction</h3>
+        <ul>
+          <li><strong>Peak calling per sample</strong> (MACS2 or pipeline defaults): find genomic regions with enriched insertions.</li>
+          <li><strong>Merge peaks across samples</strong> to create a union peak set (so all samples are compared on the same feature set).</li>
+          <li><strong>Count insertions</strong> (featureCounts / custom scripts): generate a matrix of insertion counts per peak per sample (this becomes your expression-like table for differential tests).</li>
+        </ul>
+      </div>
+    </div>
+
+    <div style="margin-top:.6rem" class="two-col">
+      <div class="col">
+        <h3>Stage C — Downstream analysis</h3>
+        <ul>
+          <li><strong>Differential accessibility</strong> (DESeq2, edgeR, etc.): test which peaks change between conditions.</li>
+          <li><strong>Motif enrichment</strong> (HOMER, MEME): identify TF motifs enriched in sets of peaks.</li>
+          <li><strong>Peak annotation</strong> (ChIPseeker, HOMER): assign peaks to nearest genes, promoters, enhancers.</li>
+          <li><strong>Visualization & integration</strong> (IGV / UCSC Genome Browser, ArchR for single-cell or advanced analyses): inspect tracks, integrate with RNA-seq, ChIP-seq, etc.</li>
+        </ul>
+      </div>
+
+      <div class="col">
+        <h3>Recommended automatic pipelines</h3>
+        <ul>
+          <li><strong>PEPATAC:</strong> portable, user-friendly, includes many QC metrics (TSS enrichment, fragment distribution). (See <a href="https://pepatac.databio.org/en/latest/">PEPATAC docs</a>.)</li>
+          <li><strong>ENCODE ATAC-seq pipeline:</strong> consortium-level, thoroughly tested pipeline used by ENCODE.</li>
+          <li><strong>nf-core/atacseq:</strong> community pipeline with standardized inputs and reproducible containers.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="detailed-steps">
+    <h2 id="detailed-steps">4. Detailed, step-by-step walkthrough (what each step does & what to look for)</h2>
+
+    <h3>Step 1 — Pre-alignment QC (FastQC)</h3>
+    <p><strong>What</strong>: run FastQC on raw FASTQ files.</p>
+    <p><strong>Why</strong>: find low quality reads, adapter contamination, unusual base composition.</p>
+    <p><strong>What to look for</strong>: per-base quality (Phred), adapter content, overrepresented sequences. If adapters are present, trimming is required.</p>
+
+    <h3>Step 2 — Adapter trimming (Cutadapt / Trim Galore)</h3>
+    <p><strong>What</strong>: remove adapter sequences and optionally low-quality bases from read ends.</p>
+    <p><strong>Why</strong>: short fragments (common in ATAC) often include adapter sequence; unmended adapters cause alignment errors and false positives in peak calling.</p>
+
+    <h3>Step 3 — Alignment (Bowtie2 / BWA)</h3>
+    <p><strong>What</strong>: map paired-end reads to the genome.</p>
+    <p><strong>Why</strong>: correct alignment is needed to localize insertion events; preserve fragment length information produced by paired-end sequencing.</p>
+    <p><strong>What to look for</strong>: mapping rate (ideally >70% for good libraries), fraction of reads mapping to mitochondria (high mitochondrial reads indicate poor nuclei prep). Align using parameters recommended for ATAC (keep properly paired reads, set reasonable max fragment length).</p>
+
+    <h3>Step 4 — Remove mitochondrial reads & duplicates (SAMtools / Picard)</h3>
+    <p><strong>What</strong>: filter out reads aligning to the mitochondrial chromosome (chrM) and mark/remove PCR duplicates.</p>
+    <p><strong>Why</strong>: mitochondrial reads do not report chromatin accessibility and can dominate the library; duplicates can inflate signal if PCR overamplified.</p>
+    <p><strong>What to monitor</strong>: percent mitochondrial reads (low is better); duplication rate (high duplication → low complexity library).</p>
+
+    <h3>Step 5 — Tn5 offset / adjust fragment centers</h3>
+    <p><strong>What</strong>: shift aligned reads by a small number of bases (strand-specific) so they represent the precise cut site of Tn5.</p>
+    <p><strong>Why</strong>: centers insertion events correctly for accurate peak calling and footprinting analyses.</p>
+
+    <h3>Step 6 — Peak calling (MACS2 or pipeline default)</h3>
+    <p><strong>What</strong>: detect genomic regions with enriched insertions compared with background.</p>
+    <p><strong>Why</strong>: peaks approximate open chromatin regions used for downstream interpretation.</p>
+
+    <h3>Step 7 — Merge peaks & count insertions</h3>
+    <p><strong>What</strong>: build a union (consensus) peak set across all samples and count insertions per sample per peak (count matrix).</p>
+    <p><strong>Why</strong>: ensures all samples are compared on the same feature list for differential testing.</p>
+
+    <h3>Step 8 — Downstream analyses</h3>
+    <p>
+      This includes:
+      <ul>
+        <li>Differential accessibility tests (DESeq2/edgeR)</li>
+        <li>Motif enrichment and TF inference</li>
+        <li>Peak annotation and integration with expression data</li>
+        <li>Visualization in genome browsers</li>
+      </ul>
+    </p>
+  </section>
+
+  <section class="panel" aria-labelledby="qc-metrics">
+    <h2 id="qc-metrics">5. Key QC metrics you should always check</h2>
+    <ul>
+      <li><strong>Sequencing depth:</strong> number of read pairs (aim ≈10M read pairs for routine experiments).</li>
+      <li><strong>Mapping rate:</strong> fraction of reads that align to the genome.</li>
+      <li><strong>Fraction mitochondrial reads:</strong> high % suggests bad nuclei prep; mitochondrial reads are typically removed.</li>
+      <li><strong>TSS enrichment score:</strong> high enrichment at transcription start sites indicates good signal-to-noise (pipelines like PEPATAC report this).</li>
+      <li><strong>Fragment length distribution:</strong> peaks at nucleosome-free (~<100 bp) and mono/di/tri-nucleosome multiples (~150 bp) indicate expected biology.</li>
+      <li><strong>Duplicate rate / library complexity:</strong> high duplication reduces usable unique reads.</li>
+    </ul>
+  </section>
+
+  <section class="panel" aria-labelledby="common-problems">
+    <h2 id="common-problems">6. Common problems & practical tips</h2>
+    <ul>
+      <li><strong>Too many mitochondrial reads</strong>: optimize nuclei isolation (gentler lysis) and remove mtDNA reads after alignment.</li>
+      <li><strong>Low TSS enrichment</strong>: indicates low signal; check sample prep quality and sequencing depth.</li>
+      <li><strong>Adapter contamination</strong>: always trim adapters, especially if fragments are short.</li>
+      <li><strong>Very low mapping rate</strong>: check reference genome, read format, and whether data are single-end vs paired-end mismatch.</li>
+      <li><strong>High duplication</strong>: use more input material, reduce PCR cycles if possible, or accept lower complexity for QC experiments.</li>
+    </ul>
+  </section>
+
+  <section class="panel" aria-labelledby="recommended-tools">
+    <h2 id="recommended-tools">7. Tools & pipeline recommendations (easy starters)</h2>
+    <div class="two-col">
+      <div class="col">
+        <h3>Quick commands / small toolset</h3>
+        <ul>
+          <li><strong>FastQC</strong> — raw read QC</li>
+          <li><strong>seqtk</strong> — subsampling & basic FASTQ ops</li>
+          <li><strong>Cutadapt / Trim Galore</strong> — trimming</li>
+          <li><strong>Bowtie2</strong> — aligner commonly used for ATAC</li>
+          <li><strong>SAMtools / Picard</strong> — filtering & marking duplicates</li>
+          <li><strong>MACS2</strong> — peak calling</li>
+        </ul>
+      </div>
+
+      <div class="col">
+        <h3>Full pipelines (recommended for beginners)</h3>
+        <ul>
+          <li><a href="https://pepatac.databio.org/en/latest/">PEPATAC</a> — portable, produces many QC metrics including TSS enrichment.</li>
+          <li><a href="https://www.encodeproject.org/">ENCODE ATAC-seq pipeline</a> — consortium best practices.</li>
+          <li><a href="https://nf-co.re/usage/atacseq">nf-core/atacseq</a> — community pipeline with standardization and container support.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="workflow-checklist">
+    <h2 id="workflow-checklist">8. Practical checklist for a single sample (quick)</h2>
+    <div class="check">
+      <ol>
+        <li>Confirm paired-end sequencing and target depth (e.g., 10M read pairs).</li>
+        <li>Run FastQC on raw FASTQ and inspect adapter content & per-base quality.</li>
+        <li>Trim adapters if needed (Cutadapt / Trim Galore).</li>
+        <li>Align reads to the correct reference genome (paired-end aware).</li>
+        <li>Filter out mitochondrial reads and low-quality mappings; mark/remove duplicates.</li>
+        <li>Apply Tn5 offset correction to represent cut sites.</li>
+        <li>Call peaks (MACS2 or pipeline default).</li>
+        <li>Merge peaks across samples and count insertions for differential testing.</li>
+        <li>Run downstream analyses (differential, motif enrichment, annotation).</li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="glossary">
+    <h2 id="glossary">9. Short glossary (helpful terms)</h2>
+    <div class="gloss">
+      <strong>Tn5</strong> — transposase used to insert adapters into open chromatin.<br>
+      <strong>Fragment</strong> — the DNA segment between paired reads; fragment length carries nucleosome information.<br>
+      <strong>Peak</strong> — genomic interval with enriched insertions (open chromatin).<br>
+      <strong>TSS enrichment</strong> — signal enrichment at transcription start sites; a QC metric for ATAC-seq.<br>
+      <strong>Fragment length distribution</strong> — histogram of fragment sizes; nucleosome periodicity appears as peaks ~150 bp apart.<br>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="further-reading">
+    <h2 id="further-reading">10. Further reading & links</h2>
+    <ul>
+      <li>Buenrostro et al., original ATAC-seq paper (2013) — introduction to the method.</li>
+      <li>Protocol & review: <a href="https://www.nature.com/articles/s41596-022-00692-9">Nature Protocols / 2022 review (ATAC-seq best practices)</a> — recommended reading (detailed).</li>
+      <li><a href="https://pepatac.databio.org/en/latest/">PEPATAC documentation</a> — a user-friendly pipeline that reports many QC metrics (TSS enrichment etc.).</li>
+      <li>ENCODE ATAC-seq pipeline — consortium pipeline & guidelines.</li>
+      <li>nf-core/atacseq — community, containerized pipeline.</li>
+    </ul>
+  </section>
+
+  
+</body>
+</html>
