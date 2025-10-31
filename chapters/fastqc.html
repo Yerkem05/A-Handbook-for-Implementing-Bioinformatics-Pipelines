@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Download & Subsample FASTQ (ENCODE example)</title>
+  <title>FASTQC (ENCODE example)</title>
   <style>
     /* Base */
     body {
@@ -36,6 +36,46 @@
       color: #111827;
       border-bottom: 2px solid #E5E7EB;
       padding-bottom: 0.3rem;
+    }
+    .learning-objectives {
+      font-size: 1.75rem;
+      font-weight: 600;
+      margin-top: 1.5rem;
+      margin-bottom: 1rem;
+      color: #111827;
+    }
+    h3 {
+      font-size: 1.15rem;
+      font-weight: 600;
+      margin-top: 1.5rem;
+      margin-bottom: 0.5rem;
+      color: #111827;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      margin-bottom: 1rem;
+      font-size: 0.95rem;
+    }
+    th {
+      background-color: #F3F4F6;
+      color: #111827;
+      font-weight: 600;
+      padding: 0.75rem;
+      text-align: left;
+      border: 1px solid #E5E7EB;
+    }
+    td {
+      padding: 0.75rem;
+      border: 1px solid #E5E7EB;
+      vertical-align: top;
+    }
+    tr:nth-child(even) {
+      background-color: #F9FAFB;
+    }
+    tr:hover {
+      background-color: #F3F4F6;
     }
     p {
       margin-top: 0.5rem;
@@ -91,6 +131,31 @@
       margin-top: 0.5rem;
       margin-bottom: 0.5rem;
     }
+    img {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin: 1.5rem auto;
+      border: 1px solid #E5E7EB;
+      border-radius: 0.5rem;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .figure-caption {
+      text-align: center;
+      font-size: 0.9rem;
+      color: #6B7280;
+      margin-top: 0.5rem;
+      margin-bottom: 1.5rem;
+      font-style: italic;
+    }
+    .workflow-section {
+      margin-top: 2rem;
+      margin-bottom: 2rem;
+      padding: 1rem;
+      background-color: #F9FAFB;
+      border-radius: 0.5rem;
+      border-left: 4px solid #2563EB;
+    }
     @media (max-width: 600px) {
       body {
         padding: 1rem 0.8rem;
@@ -103,10 +168,28 @@
 </head>
 <body>
   <div class="content">
-    <h1>Download & Subsample FASTQ (ENCODE example)</h1>
-    <p class="lead">
-      This chapter shows how to download a public ATAC-seq FASTQ from ENCODE, create a randomized smaller subset for testing using <code>seqtk</code>, run FastQC on the subset, and inspect results. Explanations are detailed for users with limited command-line experience.
-    </p>
+    <h1>FASTQC (ENCODE example)</h1>
+    <h2 class="learning-objectives">Learning Objectives</h2>
+    <ul>
+      <li>Download a public ATAC-seq FASTQ file from ENCODE</li>
+      <li>Create a randomized smaller subset for testing using <code>seqtk</code></li>
+      <li>Run FastQC on sequencing data to assess quality</li>
+      <li>Inspect and interpret FastQC results to evaluate data quality</li>
+    </ul>
+
+    <div class="workflow-section">
+      <h3>Why FastQC Analysis is Essential</h3>
+      <p>
+        FastQC is the critical first step in any sequencing data analysis pipeline. Before proceeding with downstream analysis like alignment, variant calling, or differential expression, you must assess the quality of your raw sequencing data. Quality issues such as adapter contamination, low-quality bases, or systematic biases can lead to incorrect results and wasted computational resources.
+      </p>
+      <p>
+        The flowchart below illustrates a typical bioinformatics pipeline, where quality assessment with FastQC is the foundational step that informs all subsequent processing decisions:
+      </p>
+      <img src="../assets/images/flowchart.png" alt="Data processing pipeline flowchart showing FastQC as the first step, followed by adapter trimming, alignment, and duplicate removal">
+      <p class="figure-caption">
+        <strong>Figure:</strong> Typical sequencing data processing pipeline. FastQC quality assessment (Step 1) must be performed before any downstream analysis. The results guide decisions about adapter trimming, quality filtering, and help identify potential issues that could affect alignment and quantification steps.
+      </p>
+    </div>
 
     <h2 id="dataset">Dataset overview & ethical note</h2>
     <p>
@@ -171,11 +254,80 @@ ls -lh</pre>
     <p>Open the HTML report in your default browser:</p>
     <pre id="cmd-open">open ENCFF535OGL_subset_fastqc.html</pre>
     <button class="copy" onclick="copyText('cmd-open')">Copy</button>
-    <ul>
-      <li><strong>Per base sequence quality</strong> — look for overall high Phred scores across read length.</li>
-      <li><strong>Adapter content</strong> — if adapters are present, trimming is required.</li>
-      <li><strong>Overrepresented sequences</strong> — may indicate contamination or adapters.</li>
-    </ul>
+    <p>The FastQC HTML report contains the following quality control modules:</p>
+    
+    <table>
+      <thead>
+        <tr>
+          <th>Module</th>
+          <th>Description</th>
+          <th>What to Look For</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Basic Statistics</strong></td>
+          <td>Overview of FASTQ file including total sequences, length, %GC content, and quality encoding.</td>
+          <td>Verify file processed correctly and matches expected sequencing parameters.</td>
+        </tr>
+        <tr>
+          <td><strong>Per Base Sequence Quality</strong></td>
+          <td>Average Phred quality score at each position along the read length (displayed as boxplot).</td>
+          <td>Consistently high scores (Q20-30+). Quality degradation at 3' end may require trimming.</td>
+        </tr>
+        <tr>
+          <td><strong>Per Tile Sequence Quality</strong></td>
+          <td>Quality scores averaged across each tile position on the Illumina flow cell.</td>
+          <td>Uniform quality across tiles. Lower quality in specific tiles indicates technical issues.</td>
+        </tr>
+        <tr>
+          <td><strong>Per Sequence Quality Scores</strong></td>
+          <td>Distribution of mean quality scores per read sequence (histogram).</td>
+          <td>Normal distribution centered on high quality scores. Low quality peaks indicate poor reads.</td>
+        </tr>
+        <tr>
+          <td><strong>Per Base Sequence Content</strong></td>
+          <td>Percentage of each nucleotide (A, T, G, C) at each position along reads.</td>
+          <td>~25% of each base at every position. Deviations indicate adapter contamination or PCR bias.</td>
+        </tr>
+        <tr>
+          <td><strong>Per Sequence GC Content</strong></td>
+          <td>Distribution of GC content across all sequences compared to theoretical normal distribution.</td>
+          <td>Normal distribution centered on expected GC content. Unusual distributions suggest contamination.</td>
+        </tr>
+        <tr>
+          <td><strong>Per Base N Content</strong></td>
+          <td>Percentage of N (ambiguous base) calls at each position.</td>
+          <td>0% or very low N content. High N content indicates poor base calling or sequencing issues.</td>
+        </tr>
+        <tr>
+          <td><strong>Sequence Length Distribution</strong></td>
+          <td>Distribution of read lengths in your dataset.</td>
+          <td>Single sharp peak for uniform read lengths. Multiple peaks suggest adapter contamination or trimming artifacts.</td>
+        </tr>
+        <tr>
+          <td><strong>Sequence Duplication Levels</strong></td>
+          <td>Percentage of sequences present at different duplication levels (1x, 2x, 3x, etc.).</td>
+          <td>Low duplication levels. High duplication (>50%) may indicate PCR bias or artifacts in genomic sequencing.</td>
+        </tr>
+        <tr>
+          <td><strong>Overrepresented Sequences</strong></td>
+          <td>Sequences appearing more frequently than expected, with possible source identification.</td>
+          <td>No overrepresented sequences. If adapters/primer sequences found, trimming is necessary.</td>
+        </tr>
+        <tr>
+          <td><strong>Adapter Content</strong></td>
+          <td>Cumulative percentage of adapter contamination detected at each position along reads.</td>
+          <td>No adapter content. If >5% detected, adapter trimming required before downstream analysis.</td>
+        </tr>
+      </tbody>
+    </table>
+    
+    <p><strong>Interpreting FastQC Results:</strong> FastQC assigns a status (✓ pass, ⚠ warning, ✗ fail) to each module. While warnings and failures indicate potential issues, context matters—some "failures" may be acceptable depending on your experimental design and downstream analysis needs. Use these metrics to guide quality filtering and trimming decisions.</p>
+    
+    <div class="note">
+      <strong>Note:</strong> We will dissect the details of each FastQC report data visualization in the next chapter.
+    </div>
 
     <h2 id="cleanup">Extra: remove large files</h2>
     <p>If you want to remove the full original FASTQ to save space (be careful), run:</p>
