@@ -1,26 +1,113 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
-  <title>ATAC-seq Handbook — Download & Subsample FASTQ</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Download & Subsample FASTQ (ENCODE example)</title>
   <style>
-    body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;line-height:1.6;margin:2rem;color:#0f172a;background:#fbfdff}
-    h1{font-size:1.6rem;margin-bottom:.1rem}
-    h2{font-size:1.05rem;margin-top:1.0rem}
-    p.lead{color:#334155;margin-top:0}
-    .cmd{background:#0b1220;color:#e6eef8;padding:.8rem;border-radius:8px;overflow:auto;font-family:ui-monospace,Menlo,Monaco,monospace}
-    .copy{background:#0ea5a4;color:white;border:none;padding:.35rem .6rem;border-radius:6px;cursor:pointer;margin-left:.5rem}
-    .panel{background:white;border:1px solid #e6eef8;padding:1rem;border-radius:8px;margin-top:.75rem}
-    .note{display:inline-block;background:#fff7ed;border:1px solid #ffedd5;color:#92400e;padding:.4rem .6rem;border-radius:6px}
-    ul{margin-top:.25rem}
+    /* Base */
+    body {
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      color: #1F2937;
+      background-color: #FFFFFF;
+      margin: 0;
+      padding: 2rem 1rem;
+      line-height: 1.6;
+    }
+    .content {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    h1 {
+      font-weight: 600;
+      font-size: 2.2rem;
+      margin-bottom: 0.5rem;
+      color: #111827;
+    }
+    .lead {
+      font-size: 1.05rem;
+      color: #374151;
+      margin-bottom: 1.5rem;
+    }
+    h2 {
+      font-size: 1.35rem;
+      margin-top: 2.0rem;
+      margin-bottom: 0.75rem;
+      color: #111827;
+      border-bottom: 2px solid #E5E7EB;
+      padding-bottom: 0.3rem;
+    }
+    p {
+      margin-top: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+    ul {
+      margin-top: 0.5rem;
+      margin-bottom: 0.5rem;
+      padding-left: 1.25rem;
+    }
+    li {
+      margin-bottom: 0.25rem;
+    }
+    code {
+      background-color: #F3F4F6;
+      padding: 0.1rem 0.3rem;
+      border-radius: 0.25rem;
+      font-family: Menlo, Monaco, Consolas, 'Courier New', monospace;
+      font-size: 0.95rem;
+    }
+    pre {
+      background-color: #111827;
+      color: #F9FAFB;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      overflow-x: auto;
+      font-family: Menlo, Monaco, Consolas, 'Courier New', monospace;
+      font-size: 0.95rem;
+      margin-top: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .copy {
+      display: inline-block;
+      margin-top: 0.4rem;
+      padding: 0.4rem 0.8rem;
+      font-size: 0.85rem;
+      background-color: #2563EB;
+      color: #FFFFFF;
+      border: none;
+      border-radius: 0.3rem;
+      cursor: pointer;
+    }
+    .copy:hover {
+      background-color: #1D4ED8;
+    }
+    .note {
+      font-size: 0.9rem;
+      color: #6B7280;
+      background-color: #F9FAFB;
+      padding: 0.4rem 0.6rem;
+      border-left: 3px solid #E5E7EB;
+      display: block;
+      margin-top: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+    @media (max-width: 600px) {
+      body {
+        padding: 1rem 0.8rem;
+      }
+      h1 {
+        font-size: 1.8rem;
+      }
+    }
   </style>
 </head>
 <body>
-  <h1>Download & Subsample FASTQ (ENCODE example)</h1>
-  <p class="lead">This chapter shows how to download a public ATAC-seq FASTQ from ENCODE, create a randomized smaller subset for testing using <code>seqtk</code>, run FastQC on the subset, and inspect results. Explanations are detailed for users with limited command-line experience.</p>
+  <div class="content">
+    <h1>Download & Subsample FASTQ (ENCODE example)</h1>
+    <p class="lead">
+      This chapter shows how to download a public ATAC-seq FASTQ from ENCODE, create a randomized smaller subset for testing using <code>seqtk</code>, run FastQC on the subset, and inspect results. Explanations are detailed for users with limited command-line experience.
+    </p>
 
-  <section class="panel" aria-labelledby="dataset">
     <h2 id="dataset">Dataset overview & ethical note</h2>
     <p>
       Example dataset (ENCODE): <strong>ENCFF535OGL</strong>, from experiment ENCSR862JVD. For this handbook we use a mouse (Mus musculus) sample to avoid human-data ethical concerns during demonstrations.
@@ -31,149 +118,87 @@
       <li><strong>Biosample:</strong> C57BL/6J mouse monocyte (adult)</li>
       <li><strong>Note:</strong> Always check data usage terms of repositories and avoid using identifiable human data without approvals.</li>
     </ul>
-  </section>
 
-  <section class="panel" aria-labelledby="setup">
     <h2 id="setup">Step 0 — Make sure tools are available</h2>
     <p>Activate the environment we created earlier (example name: <code>bio-tools</code>), so <code>seqtk</code>, <code>wget</code>, and <code>fastqc</code> are available.</p>
+    <pre id="cmd-activate">conda activate bio-tools</pre>
+    <button class="copy" onclick="copyText('cmd-activate')">Copy</button>
 
-    <div class="cmd" id="cmd-activate">
-<pre>conda activate bio-tools
-</pre>
-    </div>
-    <div style="margin-top:.5rem"><button class="copy" onclick="copyText('cmd-activate')">Copy</button></div>
-  </section>
-
-  <section class="panel" aria-labelledby="nav">
     <h2 id="nav">Step 1 — Navigate to your project raw_data folder</h2>
     <p>Use the folder structure from Chapter 1. If you followed that structure your raw reads go here:</p>
+    <pre id="cmd-cd">cd ~/atacseq/raw_data
+pwd   # confirm you are in the correct folder</pre>
+    <button class="copy" onclick="copyText('cmd-cd')">Copy</button>
 
-    <div class="cmd" id="cmd-cd">
-<pre>cd ~/atacseq/raw_data
-pwd   # confirm you are in the correct folder
-</pre>
-    </div>
-    <div style="margin-top:.5rem"><button class="copy" onclick="copyText('cmd-cd')">Copy</button></div>
-  </section>
-
-  <section class="panel" aria-labelledby="download">
     <h2 id="download">Step 2 — Download the FASTQ file from ENCODE</h2>
     <p>ENCODE files can be downloaded using their file URL. Run:</p>
-
-    <div class="cmd" id="cmd-wget">
-<pre>wget https://www.encodeproject.org/files/ENCFF535OGL/@@download/ENCFF535OGL.fastq.gz
-</pre>
+    <pre id="cmd-wget">wget https://www.encodeproject.org/files/ENCFF535OGL/@@download/ENCFF535OGL.fastq.gz</pre>
+    <button class="copy" onclick="copyText('cmd-wget')">Copy</button>
+    <div class="note">
+      If <code>wget</code> is not installed, install with <code>conda install wget</code>.
     </div>
-    <div style="margin-top:.5rem"><button class="copy" onclick="copyText('cmd-wget')">Copy</button>
-      <span class="note">If <code>wget</code> is not installed, install with <code>conda install wget</code>.</span>
-    </div>
-
     <p><strong>Progress & expected result:</strong> the file <code>ENCFF535OGL.fastq.gz</code> should appear in <code>~/atacseq/raw_data</code>. Use <code>ls -lh</code> to check file size and timestamp.</p>
-  </section>
 
-  <section class="panel" aria-labelledby="subsample">
     <h2 id="subsample">Step 3 — Subsample the FASTQ using <code>seqtk</code></h2>
     <p>
       Large FASTQ files can be many gigabytes. For tutorials and quick tests we usually create a smaller, randomized subset. <code>seqtk sample -s SEED IN_FASTQ N</code> draws <strong>N</strong> reads at random using a seed for reproducibility.
     </p>
-
-    <div class="cmd" id="cmd-seqtk">
-<pre># Example: take 1,000,000 reads (single-end). The -s 100 sets a reproducible random seed.
-seqtk sample -s 100 ENCFF535OGL.fastq.gz 1000000 | gzip > ENCFF535OGL_subset.fastq.gz
-</pre>
-    </div>
-    <div style="margin-top:.5rem"><button class="copy" onclick="copyText('cmd-seqtk')">Copy</button></div>
-
-    <p><strong>Notes & explanation:</strong></p>
+    <pre id="cmd-seqtk"># Example: take 1,000,000 reads (single-end). The -s 100 sets a reproducible random seed.
+seqtk sample -s 100 ENCFF535OGL.fastq.gz 1000000 | gzip > ENCFF535OGL_subset.fastq.gz</pre>
+    <button class="copy" onclick="copyText('cmd-seqtk')">Copy</button>
     <ul>
       <li><strong>1000000</strong> = number of reads to sample. Choose smaller (10000) or larger based on your needs. For paired-end data you should sample read pairs (use seqtk with appropriate flags or sample by reads per pair; see paired examples).</li>
       <li><strong>-s 100</strong> fixes the RNG seed so your sampling is reproducible (same subset every run).</li>
       <li>Piping through <code>gzip</code> compresses the subset and saves disk space.</li>
     </ul>
-  </section>
 
-  <section class="panel" aria-labelledby="fastqc">
     <h2 id="fastqc">Step 4 — Run FastQC on the subset</h2>
     <p>FastQC produces an HTML report summarizing per-base quality, adapter content, and other QC metrics.</p>
-
-    <div class="cmd" id="cmd-fastqc">
-<pre>fastqc ENCFF535OGL_subset.fastq.gz -o ../results/fastqc/
-</pre>
-    </div>
-    <div style="margin-top:.5rem"><button class="copy" onclick="copyText('cmd-fastqc')">Copy</button></div>
-
+    <pre id="cmd-fastqc">fastqc ENCFF535OGL_subset.fastq.gz -o ../results/fastqc/</pre>
+    <button class="copy" onclick="copyText('cmd-fastqc')">Copy</button>
     <p><strong>Expected output</strong> (terminal message):</p>
-
-    <div class="cmd">
-<pre>Analysis complete for ENCFF535OGL_subset.fastq.gz
-</pre>
-    </div>
-
+    <pre>Analysis complete for ENCFF535OGL_subset.fastq.gz</pre>
     <p>The FastQC run will create an <code>.html</code> report and a <code>.zip</code> archive inside <code>../results/fastqc/</code> (relative to <code>raw_data</code>).</p>
-  </section>
 
-  <section class="panel" aria-labelledby="inspect">
     <h2 id="inspect">Step 5 — Inspect results</h2>
     <p>Go to the results folder and list files:</p>
-
-    <div class="cmd" id="cmd-inspect">
-<pre>cd ../results/fastqc/
-ls -lh
-</pre>
-    </div>
-    <div style="margin-top:.5rem"><button class="copy" onclick="copyText('cmd-inspect')">Copy</button></div>
-
+    <pre id="cmd-inspect">cd ../results/fastqc/
+ls -lh</pre>
+    <button class="copy" onclick="copyText('cmd-inspect')">Copy</button>
     <p>You should see files similar to:</p>
-    <div class="cmd">
-<pre>-rw-r--r--  1 you  staff  719K Oct 22 00:25 ENCFF535OGL_subset_fastqc.html
--rw-r--r--  1 you  staff  880K Oct 22 00:25 ENCFF535OGL_subset_fastqc.zip
-</pre>
-    </div>
-
+    <pre>-rw-r--r--  1 you  staff  719K Oct 22 00:25 ENCFF535OGL_subset_fastqc.html
+-rw-r--r--  1 you  staff  880K Oct 22 00:25 ENCFF535OGL_subset_fastqc.zip</pre>
     <p>Open the HTML report in your default browser:</p>
-
-    <div class="cmd" id="cmd-open">
-<pre>open ENCFF535OGL_subset_fastqc.html
-</pre>
-    </div>
-    <div style="margin-top:.5rem"><button class="copy" onclick="copyText('cmd-open')">Copy</button></div>
-
-    <p>FastQC report highlights to inspect:</p>
+    <pre id="cmd-open">open ENCFF535OGL_subset_fastqc.html</pre>
+    <button class="copy" onclick="copyText('cmd-open')">Copy</button>
     <ul>
       <li><strong>Per base sequence quality</strong> — look for overall high Phred scores across read length.</li>
       <li><strong>Adapter content</strong> — if adapters are present, trimming is required.</li>
       <li><strong>Overrepresented sequences</strong> — may indicate contamination or adapters.</li>
     </ul>
-  </section>
 
-  <section class="panel" aria-labelledby="cleanup">
     <h2 id="cleanup">Extra: remove large files</h2>
     <p>If you want to remove the full original FASTQ to save space (be careful), run:</p>
+    <pre id="cmd-rm">rm ENCFF535OGL.fastq.gz</pre>
+    <button class="copy" onclick="copyText('cmd-rm')">Copy</button>
+    <p><strong>Warning:</strong> only delete files once you are certain you don’t need them.</p>
 
-    <div class="cmd" id="cmd-rm">
-<pre>rm ENCFF535OGL.fastq.gz
-</pre>
-    </div>
-    <div style="margin-top:.5rem"><button class="copy" onclick="copyText('cmd-rm')">Copy</button></div>
-    <p><strong>Warning:</strong> only delete files once you are certain you don't need them.</p>
-  </section>
-
-  <section class="panel" aria-labelledby="troubleshoot2">
     <h2 id="troubleshoot2">Troubleshooting</h2>
     <ul>
-      <li><strong>wget 404 or permission error:</strong> confirm the URL in your browser, and that the file's access is public. ENCODE sometimes requires specific download methods; open the file page and copy the “download” link.</li>
+      <li><strong>wget 404 or permission error:</strong> confirm the URL in your browser, and that the file’s access is public. ENCODE sometimes requires specific download methods; open the file page and copy the “download” link.</li>
       <li><strong>seqtk: command not found:</strong> ensure <code>conda activate bio-tools</code> and that seqtk was installed in that env (<code>conda list | grep seqtk</code>).</li>
       <li><strong>FastQC runs but HTML missing:</strong> check the output directory path (<code>-o ../results/fastqc/</code>) and ensure you have write permission to that folder.</li>
       <li><strong>Subsample too small/too big:</strong> choose <code>N</code> appropriate to your machine and goals (10k–1M reads common for testing). If using paired-end data, be careful to keep pairs together.</li>
     </ul>
-  </section>
 
-
+  </div>
 
   <script>
     function copyText(id){
       const text = document.getElementById(id).innerText;
-      navigator.clipboard.writeText(text).then(()=>{ alert('Copied to clipboard'); }, ()=>{ alert('Copy failed — select and copy manually'); });
+      navigator.clipboard.writeText(text)
+        .then(()=>{ alert('Copied to clipboard'); })
+        .catch(()=>{ alert('Copy failed — please copy manually.'); });
     }
   </script>
 </body>

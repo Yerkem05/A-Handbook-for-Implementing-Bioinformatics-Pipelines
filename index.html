@@ -1,28 +1,144 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>A Handbook for Implementing Bioinformatics Pipelines</title>
-  <link rel="stylesheet" href="assets/style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A Handbook for Implementing Bioinformatics Pipelines</title>
+    <meta name="description" content="A structured guide to implementing bioinformatics pipelines for ATAC-seq data analysis">
+    <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-  <header>
-    <h1>A Handbook for Implementing Bioinformatics Pipelines</h1>
-    <p>This handbook provides a structured guide to implementing bioinformatics pipelines for ATAC-seq data analysis designed for students and researchers new to computational biology.</p>
-  </header>
+    <!-- Hero Section -->
+    <header class="site-header">
+        <div class="container header-content">
+            <div class="header-inner">
+                <div class="badge">
+                    Computational Biology Guide
+                </div>
+                <h1 class="main-title">
+                    A Handbook for Implementing Bioinformatics Pipelines
+                </h1>
+                <p class="main-description">
+                    A structured guide to implementing bioinformatics pipelines for ATAC-seq data analysis, designed for wet lab researchers and students new to computational biology.
+                </p>
+            </div>
+        </div>
+    </header>
 
-  <h2>Table of Contents</h2>
-  <ol>
-    <li><a href="chapters/intro.html">Introduction</a></li>
-    <li><a href="chapters/install.html">Setting Up Your Environment</a></li>
-    <li><a href="chapters/atacseq.html">ATAC-seq Pipeline</a></li>
-    <li><a href="chapters/fastqc.html">RNA-seq Pipeline</a></li>
-    <li><a href="chapters/directory.html">Summary & Resources</a></li>
-  </ol>
+    <!-- Main Content -->
+    <main class="container main-content">
+        <div class="content-inner">
+            <!-- Table of Contents Header -->
+            <div class="toc-header">
+                <h2 class="toc-title">Table of Contents</h2>
+                <p class="toc-subtitle">
+                    Follow sequentially for best results
+                </p>
+            </div>
 
-  <footer>
-    <p>Created by Yerkem Shakhman © 2025</p>
-  </footer>
+            <!-- Chapters List -->
+            <div class="chapters-list">
+                <!-- Chapter 1 -->
+                <a href="chapters/intro.html" class="chapter-link">
+                    <div class="chapter-meta">
+                        <div class="icon-wrapper">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/>
+                            </svg>
+                        </div>
+                        <span class="chapter-number">01</span>
+                    </div>
+                    <div class="chapter-content">
+                        <h3 class="chapter-title">Introduction</h3>
+                        <p class="chapter-description">Learn the fundamentals of bioinformatics pipelines and ATAC-seq data analysis</p>
+                    </div>
+                    <svg class="chapter-arrow" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m9 18 6-6-6-6"/>
+                    </svg>
+                </a>
+
+                <!-- Chapter 2 -->
+                <a href="chapters/directory.html" class="chapter-link">
+                  <div class="chapter-meta">
+                      <div class="icon-wrapper">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                              <path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/>
+                              <path d="M2 10h20"/>
+                          </svg>
+                      </div>
+                      <span class="chapter-number">02</span>
+                  </div>
+                  <div class="chapter-content">
+                      <h3 class="chapter-title">Project Directory</h3>
+                      <p class="chapter-description">Organize your bioinformatics projects with best practices and structure</p>
+                  </div>
+                  <svg class="chapter-arrow" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="m9 18 6-6-6-6"/>
+                  </svg>
+              </a>
+
+                <!-- Chapter 3 -->
+                <a href="chapters/install.html" class="chapter-link">
+                    <div class="chapter-meta">
+                        <div class="icon-wrapper">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2"/>
+                                <path d="M8.5 2h7"/>
+                                <path d="M7 16h10"/>
+                            </svg>
+                        </div>
+                        <span class="chapter-number">03</span>
+                    </div>
+                    <div class="chapter-content">
+                        <h3 class="chapter-title">Setting Up Your Environment</h3>
+                        <p class="chapter-description">Configure your computational environment with essential tools and dependencies</p>
+                    </div>
+                    <svg class="chapter-arrow" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m9 18 6-6-6-6"/>
+                    </svg>
+                </a>
+
+                <!-- Chapter 4 -->
+                <a href="chapters/fastqc.html" class="chapter-link">
+                    <div class="chapter-meta">
+                        <div class="icon-wrapper">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 3v18h18"/>
+                                <path d="m19 9-5 5-4-4-3 3"/>
+                            </svg>
+                        </div>
+                        <span class="chapter-number">04</span>
+                    </div>
+                    <div class="chapter-content">
+                        <h3 class="chapter-title">FASTQC Pipeline</h3>
+                        <p class="chapter-description">Quality control and assessment of sequencing data with FASTQC</p>
+                    </div>
+                    <svg class="chapter-arrow" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m9 18 6-6-6-6"/>
+                    </svg>
+                </a>
+            </div>
+
+            <!-- Additional Info Section -->
+            <div class="info-box">
+                <h3 class="info-title">About This Handbook</h3>
+                <p class="info-text">
+                    This handbook is designed to provide hands-on guidance for implementing robust bioinformatics pipelines. Each chapter builds upon the previous one, ensuring a comprehensive learning experience.
+                </p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="container footer-content">
+            <div class="footer-inner">
+                <p>Created by Yerkem Shakhman © 2025</p>
+                <p class="footer-subtitle">Built for wet lab researchers and students in computational biology</p>
+            </div>
+        </div>
+    </footer>
 </body>
 </html>
+
 
