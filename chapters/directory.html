@@ -1,47 +1,24 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>ATAC-seq Handbook — Project Directory Setup</title>
-  <style>
-    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; line-height:1.6; margin: 2rem; color: #0f172a; background:#f8fafc; }
-    header { margin-bottom: 1.25rem; }
-    h1 { font-size: 1.8rem; margin: 0 0 .25rem 0; }
-    p.lead { margin-top:0; color:#334155; }
-    .cmd { background:#0f172a; color:#f8fafc; padding: .75rem; border-radius:8px; overflow:auto; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", monospace; }
-    pre { margin:0; white-space:pre-wrap; word-break:break-word; }
-    .explain { background:#ffffff; border:1px solid #e2e8f0; padding:1rem; border-radius:8px; margin-top:.75rem; }
-    .section { margin-top:1.25rem; }
-    .copy-btn { background:#0ea5a4; color:white; border: none; padding:.4rem .6rem; border-radius:6px; cursor:pointer; font-weight:600; margin-left:.5rem; }
-    .note { background:#fff7ed; border:1px solid #ffedd5; padding:.6rem; border-radius:6px; color:#92400e; display:inline-block; margin-top:.5rem;}
-    dl { margin: .5rem 0 0 0; }
-    dt { font-weight:700; margin-top:.5rem; }
-    dd { margin-left:1rem; margin-bottom:.5rem; color:#334155;}
-    footer { margin-top:2rem; color:#475569; font-size:.95rem; }
-    .example-tree { font-family: ui-monospace, Menlo, Monaco, monospace; background:#eef2ff; padding:.75rem; border-radius:8px; }
-  </style>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Project Directory Setup</title>
+  <link rel="stylesheet" href="../assets/chapter.css" />
 </head>
 <body>
-  <header>
-    <h1>Chapter: Project Directory Setup</h1>
+  <div class="content">
+    <h1>Project Directory Setup</h1>
     <p class="lead">How to create a clean, reproducible folder structure for an ATAC-seq analysis project on Unix-like systems (macOS, Linux, or WSL).</p>
-  </header>
 
-  <section class="section" aria-labelledby="why">
     <h2 id="why">Why structure your project?</h2>
-    <p class="explain">
+    <p>
       A consistent directory layout keeps your files organized, makes pipelines reproducible, and helps collaborators (or future you!) understand where data, scripts, references and results live. The layout below is minimal but practical for most ATAC-seq pipelines.
     </p>
-  </section>
 
-  <section class="section" aria-labelledby="commands">
     <h2 id="commands">Commands — create the directory tree</h2>
     <p>Run the following commands in your terminal. They create the project root and a set of subfolders for raw data, references, scripts, logs, metadata, and some results folders.</p>
-
-    <div class="cmd" id="commands-block">
-      <pre>
-# start in your home directory (optional)
+    <pre id="cmd-directory"># start in your home directory (optional)
 cd
 pwd
 
@@ -56,19 +33,13 @@ mkdir raw_data reference_data scripts logs meta
 mkdir -p results/fastqc results/bowtie2
 
 # Optional: show the full structure (recursive)
-ls -R
-      </pre>
+ls -R</pre>
+    <button class="copy" onclick="copyText('cmd-directory')">Copy</button>
+    <div class="note">
+      <strong>Tip:</strong> run these commands from your home directory or wherever you keep your projects.
     </div>
 
-    <div style="margin-top:.5rem;">
-      <button class="copy-btn" onclick="copyCode()">Copy commands</button>
-      <span class="note">Tip: run these commands from your home directory or wherever you keep your projects.</span>
-    </div>
-  </section>
-
-  <section class="section" aria-labelledby="explain">
     <h2 id="explain">What each command does (plain English)</h2>
-
     <dl>
       <dt><code>cd</code></dt>
       <dd>Change directory. With no arguments it takes you to your home folder (e.g., <code>/Users/yourname</code>).</dd>
@@ -99,22 +70,14 @@ ls -R
       <dt><code>ls -R</code></dt>
       <dd>Lists directory contents recursively so you can confirm the structure (subfolders inside <code>results</code>, etc.).</dd>
     </dl>
-  </section>
 
-  <section class="section" aria-labelledby="example">
     <h2 id="example">Example directory tree (expected output)</h2>
-    <div class="example-tree">
-logs/  raw_data/  reference_data/  results/  scripts/  meta/
-<br>
+    <pre>logs/  raw_data/  reference_data/  results/  scripts/  meta/
+
 ./results:
-<br>
-&nbsp;&nbsp;bowtie2/  fastqc/
-    </div>
+  bowtie2/  fastqc/</pre>
+    <p>If you run <code>ls -R</code> you should see a top-level listing and then the <code>./results</code> children (fastqc, bowtie2).</p>
 
-    <p class="explain">If you run <code>ls -R</code> you should see a top-level listing and then the <code>./results</code> children (fastqc, bowtie2).</p>
-  </section>
-
-  <section class="section" aria-labelledby="best-practices">
     <h2 id="best-practices">Best practices & notes</h2>
     <ul>
       <li><strong>Keep raw data read-only:</strong> Never overwrite files in <code>raw_data</code>. Use copies if you need to transform files for tests.</li>
@@ -123,32 +86,33 @@ logs/  raw_data/  reference_data/  results/  scripts/  meta/
       <li><strong>Logs:</strong> Redirect tool output to <code>logs/toolname_timestamp.log</code> to capture warnings and errors for debugging.</li>
       <li><strong>Version control:</strong> Keep scripts under Git in <code>scripts/</code> and add a top-level <code>README.md</code> describing the layout and usage.</li>
     </ul>
-  </section>
 
-  <section class="section" aria-labelledby="troubleshoot">
     <h2 id="troubleshoot">Troubleshooting</h2>
-    <p class="explain">
-      <strong>Permission errors:</strong> If you see "permission denied" while creating folders, check you are not trying to write to a protected directory. Use <code>chmod</code> or create the project under your home directory.<br>
-      <strong>Folder already exists:</strong> If <code>mkdir</code> fails because a folder exists, either remove it (careful) or use <code>mkdir -p</code> which won't error for existing paths.
-    </p>
-  </section>
+    <ul>
+      <li><strong>Permission errors:</strong> If you see "permission denied" while creating folders, check you are not trying to write to a protected directory. Use <code>chmod</code> or create the project under your home directory.</li>
+      <li><strong>Folder already exists:</strong> If <code>mkdir</code> fails because a folder exists, either remove it (careful) or use <code>mkdir -p</code> which won't error for existing paths.</li>
+    </ul>
 
-  <section class="section" aria-labelledby="next">
     <h2 id="next">Next steps</h2>
     <ol>
       <li>Add a <code>README.md</code> explaining the directory purpose and sample naming conventions.</li>
       <li>Create a Conda environment YAML and save it as <code>meta/conda-env.yml</code>.</li>
       <li>Add a simple run script in <code>scripts/</code> (e.g., <code>scripts/run_fastqc.sh</code>) that writes logs to <code>logs/</code> and outputs to <code>results/fastqc</code>.</li>
     </ol>
-  </section>
+
+    <div class="chapter-nav">
+      <a href="intro.html" class="nav-button back">← Back: ATAC-seq Overview</a>
+      <a href="install.html" class="nav-button next">Next: Conda Setup →</a>
+    </div>
+
+  </div>
+
   <script>
-    function copyCode() {
-      const code = document.getElementById('commands-block').innerText.trim();
-      navigator.clipboard.writeText(code).then(function() {
-        alert('Commands copied to clipboard');
-      }, function(err) {
-        alert('Could not copy: ' + err);
-      });
+    function copyText(id){
+      const text = document.getElementById(id).innerText;
+      navigator.clipboard.writeText(text)
+        .then(()=>{ alert('Copied to clipboard'); })
+        .catch(()=>{ alert('Copy failed — please copy manually.'); });
     }
   </script>
 </body>
