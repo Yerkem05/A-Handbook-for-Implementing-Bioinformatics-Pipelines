@@ -3,174 +3,200 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Adapter Trimming</title>
-  <style>
-    /* Base */
-    body {
-      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-      color: #1F2937;
-      background-color: #FFFFFF;
-      margin: 0;
-      padding: 2rem 1rem;
-      line-height: 1.6;
-    }
-    .content {
-      max-width: 800px;
-      margin: 0 auto;
-    }
-    h1 {
-      font-weight: 600;
-      font-size: 2.2rem;
-      margin-bottom: 0.5rem;
-      color: #111827;
-    }
-    .lead {
-      font-size: 1.05rem;
-      color: #374151;
-      margin-bottom: 1.5rem;
-    }
-    h2 {
-      font-size: 1.35rem;
-      margin-top: 2.0rem;
-      margin-bottom: 0.75rem;
-      color: #111827;
-      border-bottom: 2px solid #E5E7EB;
-      padding-bottom: 0.3rem;
-    }
-    .learning-objectives {
-      font-size: 1.75rem;
-      font-weight: 600;
-      margin-top: 1.5rem;
-      margin-bottom: 1rem;
-      color: #111827;
-    }
-    h3 {
-      font-size: 1.15rem;
-      font-weight: 600;
-      margin-top: 1.5rem;
-      margin-bottom: 0.5rem;
-      color: #111827;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 1rem;
-      margin-bottom: 1rem;
-      font-size: 0.95rem;
-    }
-    th {
-      background-color: #F3F4F6;
-      color: #111827;
-      font-weight: 600;
-      padding: 0.75rem;
-      text-align: left;
-      border: 1px solid #E5E7EB;
-    }
-    td {
-      padding: 0.75rem;
-      border: 1px solid #E5E7EB;
-      vertical-align: top;
-    }
-    tr:nth-child(even) {
-      background-color: #F9FAFB;
-    }
-    tr:hover {
-      background-color: #F3F4F6;
-    }
-    p {
-      margin-top: 0.5rem;
-      margin-bottom: 0.5rem;
-    }
-    ul {
-      margin-top: 0.5rem;
-      margin-bottom: 0.5rem;
-      padding-left: 1.25rem;
-    }
-    li {
-      margin-bottom: 0.25rem;
-    }
-    code {
-      background-color: #F3F4F6;
-      padding: 0.1rem 0.3rem;
-      border-radius: 0.25rem;
-      font-family: Menlo, Monaco, Consolas, 'Courier New', monospace;
-      font-size: 0.95rem;
-    }
-    pre {
-      background-color: #111827;
-      color: #F9FAFB;
-      padding: 1rem;
-      border-radius: 0.5rem;
-      overflow-x: auto;
-      font-family: Menlo, Monaco, Consolas, 'Courier New', monospace;
-      font-size: 0.95rem;
-      margin-top: 0.5rem;
-      margin-bottom: 0.5rem;
-    }
-    .copy {
-      display: inline-block;
-      margin-top: 0.4rem;
-      padding: 0.4rem 0.8rem;
-      font-size: 0.85rem;
-      background-color: #2563EB;
-      color: #FFFFFF;
-      border: none;
-      border-radius: 0.3rem;
-      cursor: pointer;
-    }
-    .copy:hover {
-      background-color: #1D4ED8;
-    }
-    .note {
-      font-size: 0.9rem;
-      color: #6B7280;
-      background-color: #F9FAFB;
-      padding: 0.4rem 0.6rem;
-      border-left: 3px solid #E5E7EB;
-      display: block;
-      margin-top: 0.5rem;
-      margin-bottom: 0.5rem;
-    }
-    img {
-      max-width: 100%;
-      height: auto;
-      display: block;
-      margin: 1.5rem auto;
-      border: 1px solid #E5E7EB;
-      border-radius: 0.5rem;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-    .figure-caption {
-      text-align: center;
-      font-size: 0.9rem;
-      color: #6B7280;
-      margin-top: 0.5rem;
-      margin-bottom: 1.5rem;
-      font-style: italic;
-    }
-    .workflow-section {
-      margin-top: 2rem;
-      margin-bottom: 2rem;
-      padding: 1rem;
-      background-color: #F9FAFB;
-      border-radius: 0.5rem;
-      border-left: 4px solid #2563EB;
-    }
-    @media (max-width: 600px) {
-      body {
-        padding: 1rem 0.8rem;
-      }
-      h1 {
-        font-size: 1.8rem;
-      }
-    }
-  </style>
+  <title>Data Cleaning – Trimming and Adapting</title>
+  <link rel="stylesheet" href="../assets/chapter.css" />
 </head>
 <body>
   <div class="content">
-    <h1>Adapter Trimming</h1>
-    <p class="lead">Content will be added here.</p>
+    <h1>Data Cleaning – Trimming and Adapting</h1>
+    
+    <h2 class="learning-objectives">Learning Objectives</h2>
+    <p>By the end of this chapter, you will be able to:</p>
+    <ul>
+      <li><strong>Diagnose</strong> biological artifacts versus technical errors in an ATAC-seq FastQC report.</li>
+      <li><strong>Explain</strong> the biological mechanism of Tn5 transposase bias and why it should not be corrected.</li>
+      <li><strong>Understand</strong> the source of adapter contamination and why removing it is critical for alignment.</li>
+      <li><strong>Execute</strong> a modern trimming workflow using <code>fastp</code> and interpret the terminal output.</li>
+      <li><strong>Analyze</strong> post-trimming QC metrics, specifically understanding changes in sequence length distribution.</li>
+    </ul>
+
+    <h2 id="biology">The Biology of the Signal: Interpreting the Noise</h2>
+    <p>
+      Welcome to the data cleaning phase. Before we can align our sequencing reads to the genome, we must ensure that the data we are feeding into the alignment software is an accurate representation of the biology we are studying.
+    </p>
+    <p>
+      In the previous chapter, we generated a Quality Control (QC) report using FastQC. You likely noticed some "Warnings" or "Failures" in that report. For a beginner, red flags in a report can be alarming, but in bioinformatics, context is everything. To understand what needs to be fixed and what needs to be ignored, we have to return to the wet lab and look closely at the chemistry of the assay itself.
+    </p>
+    <p>
+      The most confusing part of an ATAC-seq QC report is often the <strong>"Per Base Sequence Content"</strong> module. In a standard DNA sequencing run, we expect the four bases—Adenine (A), Cytosine (C), Guanine (G), and Thymine (T)—to appear randomly and in roughly equal proportions (25% each) across the length of the read.
+    </p>
+    <p>
+      However, your ATAC-seq report likely shows wild fluctuations—wavy lines that spike and dip dramatically—at the very beginning of the read (the first 9 to 12 base pairs). A general QC tool like FastQC flags this as a "Failure," interpreting it as a technical error in the sequencer. But to a biologist knowing the mechanism of ATAC-seq, this is not an error; it is a signature.
+    </p>
+    <p>
+      Recall how ATAC-seq libraries are constructed. We use an enzyme called <strong>Tn5 transposase</strong>. This enzyme has a dual job: it simultaneously fragments the open chromatin and attaches sequencing adapters to the ends of those fragments (a process called <em>tagmentation</em>).
+    </p>
+    <p>
+      While we often describe Tn5 as cutting "randomly" in open chromatin, enzymes are rarely truly random. The Tn5 transposase has a specific binding preference—a specific motif of DNA sequences that it latches onto most efficiently. Because the sequencing machine starts reading exactly where the Tn5 enzyme made its cut, the first few bases of every single read will inevitably reflect this enzyme's binding preference rather than the random sequence of the genome.
+    </p>
+    <p>
+      <strong>What does this mean for your analysis?</strong>
+    </p>
+    <p>
+      It means that the "error" you see is actually biological confirmation that your enzymatic reaction worked. Crucially, you must <strong>not</strong> trim these initial bases. If you were to trim the first 10 bases to make the report look "clean," you would be deleting the exact nucleotides where the chromatin was accessible. This would ruin your ability to perform downstream tasks like "footprinting," where we look for the exact binding sites of transcription factors. Therefore, we safely ignore this specific warning.
+    </p>
+
+    <h2 id="adapters">The Intruder: Sequencing Adapters</h2>
+    <p>
+      The second issue often seen in QC reports is <strong>Adapter Content</strong>, and unlike the Tn5 bias, this one requires our intervention.
+    </p>
+    <p>
+      When we prepare a sequencing library, we attach artificial pieces of DNA called "adapters" to both ends of our biological DNA fragments. These adapters act like handles, allowing the DNA to attach to the flow cell of the sequencing machine (the Illumina lane).
+    </p>
+    <p>
+      Ideally, the sequencing machine reads only the biological DNA in the middle. However, ATAC-seq often produces fragments of varying lengths. If a DNA fragment is shorter than the number of cycles the machine is set to read (for example, a 30bp DNA fragment sequenced on a 50bp run), the machine will read all the way through the biological DNA and continue reading right into the adapter on the other side.
+    </p>
+    <p>
+      This is a problem for the computer. When we later try to align that read to the mouse genome, the software will see a sequence that is half-mouse and half-artificial adapter. Since the adapter sequence doesn't exist in nature, the aligner will fail to find a match, and that perfectly good DNA read will be thrown in the trash. To prevent this, we must chemically "scissor" these adapters off the ends of our reads before alignment.
+    </p>
+
+    <h2 id="trim-galore">The Standard Solution: Trim Galore!</h2>
+    <p>
+      In the bioinformatics community, the standard tool for this task is <strong>Trim Galore!</strong> It is a "wrapper" script, which means it wraps around more complex tools (specifically one called <em>Cutadapt</em>) to make them user-friendly. It is designed to automatically detect which adapter was used (usually the standard Illumina Nextera sequence for ATAC-seq) and trim it off without requiring you to manually type out the DNA sequence of the adapter.
+    </p>
+    <p>
+      If you are working on a standard Linux server or an older computer, this is the tool you would use. The workflow is straightforward. First, you activate your environment:
+    </p>
+    <pre id="cmd-activate-trim">conda activate bio-tools</pre>
+    <button class="copy" onclick="copyText('cmd-activate-trim')">Copy</button>
+    <p>
+      Then, you install the tool directly from the bioconda channel:
+    </p>
+    <pre id="cmd-install-trim">conda install trim-galore</pre>
+    <button class="copy" onclick="copyText('cmd-install-trim')">Copy</button>
+    <p>
+      Once installed, you would navigate to your data folder (<code>cd atacseq/raw_data</code>) and run the command on your subset file. The command is simple because Trim Galore handles the complexity for you:
+    </p>
+    <pre id="cmd-trim-galore">trim_galore ENCFF535OGL_subset.fastq.gz</pre>
+    <button class="copy" onclick="copyText('cmd-trim-galore')">Copy</button>
+    <p><strong>Expected Output:</strong></p>
+    <p>When running Trim Galore, your terminal will display the progress of <code>cutadapt</code> working in the background:</p>
+    <pre>1.18.0
+Summing up ...
+Trimming mode: paired-end
+Adapter sequence: 'CTGTCTCTTATA' (Nextera Transposase sequence; auto-detected)
+Writing to ENCFF535OGL_subset_trimmed.fastq.gz
+
+>>> Now performing quality control on the trimmed file...</pre>
+    <p>
+      This single command would produce a new, clean file named <code>ENCFF535OGL_subset_trimmed.fastq.gz</code>, ready for alignment.
+    </p>
+
+    <h2 id="fastp">The Hardware Reality Check: A Pivot to <code>fastp</code></h2>
+    <p>
+      However, bioinformatics is rarely one-size-fits-all, and hardware limitations often force us to adapt. You are likely following this guide on a modern MacBook (M1, M2, or M3 chips). These computers use a different processor architecture (<code>osx-arm64</code>) compared to the older Intel chips (<code>osx-64</code>) that many bioinformatics tools were originally built for.
+    </p>
+    <p>
+      Tools like Trim Galore! rely on a chain of dependencies (Cutadapt, Python, etc.) that can sometimes cause "dependency conflicts" on these newer Macs. You might see errors refusing to install the software or complaining about "unsatisfiable" environments. Rather than fighting the architecture of your computer for hours, we can switch to a more modern, efficient tool that is better supported on new hardware.
+    </p>
+    <p>
+      That tool is called <strong><code>fastp</code></strong>.
+    </p>
+    <p>
+      <code>fastp</code> is an ultra-fast, all-in-one preprocessor. Unlike Trim Galore, which is a wrapper script written in Python, <code>fastp</code> is written in C++, making it incredibly fast. It performs quality control, adapter detection, and trimming all in a single pass.
+    </p>
+
+    <h2 id="execute-fastp">Executing the Workflow with <code>fastp</code></h2>
+    <p>
+      Let's implement this solution. First, we need to install the tool into our environment.
+    </p>
+    <pre id="cmd-install-fastp">conda install fastp</pre>
+    <button class="copy" onclick="copyText('cmd-install-fastp')">Copy</button>
+    <p>
+      Once installed, we need to move to the directory where our raw data lives. Never run commands from the wrong folder; the computer needs to see the file to work on it.
+    </p>
+    <pre id="cmd-cd-raw">cd atacseq/raw_data</pre>
+    <button class="copy" onclick="copyText('cmd-cd-raw')">Copy</button>
+    <p>
+      Now we will run the trimming command. We need to specify the input file (flag <code>-i</code>), the name of the new output file we want to create (flag <code>-o</code>), and the names of the reports we want it to generate (flags <code>-h</code> for HTML and <code>-j</code> for JSON).
+    </p>
+    <p>Run the following block as a single command:</p>
+    <pre id="cmd-fastp">fastp -i ENCFF535OGL_subset.fastq.gz \
+      -o ENCFF535OGL_subset_trimmed.fastq.gz \
+      -h fastp_report.html \
+      -j fastp_report.json</pre>
+    <button class="copy" onclick="copyText('cmd-fastp')">Copy</button>
+    <p><strong>Expected Output:</strong></p>
+    <p>
+      When the command finishes, fastp will print a short statistical summary to your terminal screen, but more importantly, it will generate three physical files in your current directory:
+    </p>
+    <ul>
+      <li><strong>ENCFF535OGL_subset_trimmed.fastq.gz:</strong> This is your new, clean data file. It contains the exact same reads as your original file, but with the adapters chemically "scissored" off. This file will be the input for the next chapter (Alignment).</li>
+      <li><strong>fastp_report.html:</strong> This is a visual quality control report. You can open this file in any web browser (like Chrome or Safari). It provides "Before vs. After" graphs showing exactly how much adapter sequence was removed and how the quality scores improved.</li>
+      <li><strong>fastp_report.json:</strong> This is a text-based version of the report designed for computers to read. We won't use it manually, but it is good practice to keep it for automated pipelines.</li>
+    </ul>
+    <p>
+      With these files created, we have successfully scrubbed our data of technical artifacts.
+    </p>
+    <div class="note">
+      <strong>Note:</strong> This output confirms that <code>fastp</code> detected the adapters and removed them ("reads with adapter trimmed"). It also shows that the vast majority of your reads "passed filter" and are ready for analysis.
+    </div>
+
+    <h2 id="housekeeping">Housekeeping: The "Tidy Data" Principle</h2>
+    <p>
+      We now have a cluttered directory. Our <code>raw_data</code> folder, which should be a sanctuary for original, untouched files, now contains a processed trimmed file and two report files. A key habit of a professional bioinformatician is <strong>#organization</strong>. We must separate our raw inputs from our processed outputs to prevent accidental deletion or confusion.
+    </p>
+    <p>
+      First, let's move the report files. We will create a specific folder for them inside our <code>results</code> directory and move them there.
+    </p>
+    <pre id="cmd-move-reports">mkdir ../results/fastp
+mv fastp_report.html fastp_report.json ../results/fastp/</pre>
+    <button class="copy" onclick="copyText('cmd-move-reports')">Copy</button>
+    <p>
+      Next, we need to move the trimmed data. Even though this file is now the input for our next step, it is technically a "result" of the trimming process. We will create a dedicated folder for trimmed reads and move the file out of <code>raw_data</code>.
+    </p>
+    <pre id="cmd-move-trimmed">cd ../
+mkdir results/trimmed
+mv raw_data/ENCFF535OGL_subset_trimmed.fastq.gz results/trimmed/</pre>
+    <button class="copy" onclick="copyText('cmd-move-trimmed')">Copy</button>
+    <p>
+      By doing this, we ensure that <code>raw_data</code> remains a "read-only" zone, protecting your original experiment.
+    </p>
+
+    <h2 id="sanity-check">The Sanity Check: Understanding Sequence Length Changes</h2>
+    <p>
+      We never trust a computational tool blindly. To confirm that the adapters are truly gone, we run our trusted diagnostic tool, FastQC, on the newly generated trimmed file.
+    </p>
+    <pre id="cmd-fastqc-trimmed">fastqc results/trimmed/ENCFF535OGL_subset_trimmed.fastq.gz -o results/fastqc/</pre>
+    <button class="copy" onclick="copyText('cmd-fastqc-trimmed')">Copy</button>
+    <p>
+      Open this new report. You should immediately see that the <strong>"Adapter Content"</strong> graph is now a completely flat line at 0%, confirming the cleaning was successful. However, you will likely notice a new "Warning" flag for <strong>Sequence Length Distribution</strong>, showing a sharp peak around 46-48 base pairs.
+    </p>
+    <p><strong>Why did the read lengths change?</strong></p>
+    <p>This change is expected and actually proves the trimming worked.</p>
+    <ol>
+      <li><strong>Before Trimming:</strong> Every read coming off the sequencer was exactly the same length (e.g., 51 bp). This is because the machine runs for a set number of cycles (51 cycles = 51 bases). If the biological DNA fragment was short (e.g., 48 bp), the machine filled the remaining 3 bases with adapter sequence to reach 51.</li>
+      <li><strong>After Trimming:</strong> <code>fastp</code> identified those 3 bases of "junk" adapter sequence and cut them off. That specific read is now only 48 bp long.</li>
+      <li><strong>The Peak at 800,000:</strong> The graph showing ~800,000 reads at 46-48 bp simply tells us that the majority of our library consisted of high-quality DNA that required very little trimming (maybe just 1-3 bases removed). This "peak" represents the bulk of your clean data.</li>
+    </ol>
+    <p>
+      Far from being an error, this distribution confirms that we have successfully removed the artificial adapter sequences while preserving the maximum amount of biological data. With clean, adapter-free data, we are now ready to map our reads to the genome.
+    </p>
+
+    <div class="chapter-nav">
+      <a href="fastqc-results.html" class="nav-button back">← Back: FASTQC Results</a>
+      <a href="alignment.html" class="nav-button next">Next: Genome Alignment →</a>
+    </div>
+
   </div>
+
+  <script>
+    function copyText(id){
+      const text = document.getElementById(id).innerText;
+      navigator.clipboard.writeText(text)
+        .then(()=>{ alert('Copied to clipboard'); })
+        .catch(()=>{ alert('Copy failed — please copy manually.'); });
+    }
+  </script>
 </body>
 </html>
-

@@ -4,167 +4,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>FASTQC (ENCODE example)</title>
-  <style>
-    /* Base */
-    body {
-      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-      color: #1F2937;
-      background-color: #FFFFFF;
-      margin: 0;
-      padding: 2rem 1rem;
-      line-height: 1.6;
-    }
-    .content {
-      max-width: 800px;
-      margin: 0 auto;
-    }
-    h1 {
-      font-weight: 600;
-      font-size: 2.2rem;
-      margin-bottom: 0.5rem;
-      color: #111827;
-    }
-    .lead {
-      font-size: 1.05rem;
-      color: #374151;
-      margin-bottom: 1.5rem;
-    }
-    h2 {
-      font-size: 1.35rem;
-      margin-top: 2.0rem;
-      margin-bottom: 0.75rem;
-      color: #111827;
-      border-bottom: 2px solid #E5E7EB;
-      padding-bottom: 0.3rem;
-    }
-    .learning-objectives {
-      font-size: 1.75rem;
-      font-weight: 600;
-      margin-top: 1.5rem;
-      margin-bottom: 1rem;
-      color: #111827;
-    }
-    h3 {
-      font-size: 1.15rem;
-      font-weight: 600;
-      margin-top: 1.5rem;
-      margin-bottom: 0.5rem;
-      color: #111827;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 1rem;
-      margin-bottom: 1rem;
-      font-size: 0.95rem;
-    }
-    th {
-      background-color: #F3F4F6;
-      color: #111827;
-      font-weight: 600;
-      padding: 0.75rem;
-      text-align: left;
-      border: 1px solid #E5E7EB;
-    }
-    td {
-      padding: 0.75rem;
-      border: 1px solid #E5E7EB;
-      vertical-align: top;
-    }
-    tr:nth-child(even) {
-      background-color: #F9FAFB;
-    }
-    tr:hover {
-      background-color: #F3F4F6;
-    }
-    p {
-      margin-top: 0.5rem;
-      margin-bottom: 0.5rem;
-    }
-    ul {
-      margin-top: 0.5rem;
-      margin-bottom: 0.5rem;
-      padding-left: 1.25rem;
-    }
-    li {
-      margin-bottom: 0.25rem;
-    }
-    code {
-      background-color: #F3F4F6;
-      padding: 0.1rem 0.3rem;
-      border-radius: 0.25rem;
-      font-family: Menlo, Monaco, Consolas, 'Courier New', monospace;
-      font-size: 0.95rem;
-    }
-    pre {
-      background-color: #111827;
-      color: #F9FAFB;
-      padding: 1rem;
-      border-radius: 0.5rem;
-      overflow-x: auto;
-      font-family: Menlo, Monaco, Consolas, 'Courier New', monospace;
-      font-size: 0.95rem;
-      margin-top: 0.5rem;
-      margin-bottom: 0.5rem;
-    }
-    .copy {
-      display: inline-block;
-      margin-top: 0.4rem;
-      padding: 0.4rem 0.8rem;
-      font-size: 0.85rem;
-      background-color: #2563EB;
-      color: #FFFFFF;
-      border: none;
-      border-radius: 0.3rem;
-      cursor: pointer;
-    }
-    .copy:hover {
-      background-color: #1D4ED8;
-    }
-    .note {
-      font-size: 0.9rem;
-      color: #6B7280;
-      background-color: #F9FAFB;
-      padding: 0.4rem 0.6rem;
-      border-left: 3px solid #E5E7EB;
-      display: block;
-      margin-top: 0.5rem;
-      margin-bottom: 0.5rem;
-    }
-    img {
-      max-width: 100%;
-      height: auto;
-      display: block;
-      margin: 1.5rem auto;
-      border: 1px solid #E5E7EB;
-      border-radius: 0.5rem;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-    .figure-caption {
-      text-align: center;
-      font-size: 0.9rem;
-      color: #6B7280;
-      margin-top: 0.5rem;
-      margin-bottom: 1.5rem;
-      font-style: italic;
-    }
-    .workflow-section {
-      margin-top: 2rem;
-      margin-bottom: 2rem;
-      padding: 1rem;
-      background-color: #F9FAFB;
-      border-radius: 0.5rem;
-      border-left: 4px solid #2563EB;
-    }
-    @media (max-width: 600px) {
-      body {
-        padding: 1rem 0.8rem;
-      }
-      h1 {
-        font-size: 1.8rem;
-      }
-    }
-  </style>
+  <link rel="stylesheet" href="../assets/chapter.css" />
 </head>
 <body>
   <div class="content">
@@ -342,6 +182,11 @@ ls -lh</pre>
       <li><strong>FastQC runs but HTML missing:</strong> check the output directory path (<code>-o ../results/fastqc/</code>) and ensure you have write permission to that folder.</li>
       <li><strong>Subsample too small/too big:</strong> choose <code>N</code> appropriate to your machine and goals (10k–1M reads common for testing). If using paired-end data, be careful to keep pairs together.</li>
     </ul>
+
+    <div class="chapter-nav">
+      <a href="install.html" class="nav-button back">← Back: Conda Setup</a>
+      <a href="fastqc-results.html" class="nav-button next">Next: FASTQC Results →</a>
+    </div>
 
   </div>
 
