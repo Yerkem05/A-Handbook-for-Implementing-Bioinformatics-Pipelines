@@ -238,6 +238,15 @@ a:hover {
 .nav-button.back:hover {
   background-color: #4B5563;
 }
+.nav-button.home {
+  background-color: #0EA5E9;
+}
+.nav-button.home:hover {
+  background-color: #0284C7;
+}
+.nav-button.home:active {
+  background-color: #0369A1;
+}
 .nav-button.next {
   margin-left: auto;
 }
