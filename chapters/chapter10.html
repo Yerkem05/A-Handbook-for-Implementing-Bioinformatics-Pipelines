@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Chapter 10: Visual Verification – Seeing is Believing</title>
+  <link rel="stylesheet" href="../assets/chapter.css" />
+</head>
+<body>
+  <div class="content">
+    <h1>Chapter 10: Visual Verification – Seeing is Believing</h1>
+
+    <h2 class="learning-objectives">Learning Objectives</h2>
+    <p>By the end of this chapter, you will be able to:</p>
+    <ul>
+      <li><strong>Navigate</strong> the cloud-based <strong>IGV Web App</strong> without needing complex software installation.</li>
+      <li><strong>Visualize</strong> your processed genomic data by loading signal tracks and statistical calls.</li>
+      <li><strong>Verify</strong> the success of your analysis pipeline by performing a visual "Sanity Check" on specific genes.</li>
+      <li><strong>Interpret</strong> the biological relationship between raw sequencing density (BigWig) and statistical significance (Peaks).</li>
+    </ul>
+
+    <hr>
+
+    <h2>The Concept: The "Zero-Install" Solution</h2>
+    <p>
+      In the "old days" of bioinformatics, visualizing genomes was a headache. It required downloading massive reference files, installing complex desktop software like IGV Desktop, and fighting with Java updates and RAM settings just to open a window.
+    </p>
+    <p>
+      Today, we can bypass that entire struggle. We will use the <strong>IGV Web App</strong>, a modern tool that runs entirely in your internet browser (like Chrome, Safari, or Firefox). Think of it as "Google Docs for Genomics"&mdash;it provides the full power of a genome browser with zero installation.
+    </p>
+    <p>
+      Crucially, <strong>your data stays with you</strong>. Even though the app runs in the cloud, it reads the files directly from your computer's hard drive. You do not need to wait hours to upload your massive files to a server.
+    </p>
+
+    <hr>
+
+    <h2>Phase 1: Launching the Genome Browser</h2>
+    <p>Let’s set up our digital microscope.</p>
+
+    <p><strong>1. Open the App</strong></p>
+    <p>Open your web browser and navigate to: <a href="https://igv.org/app/" target="_blank" rel="noreferrer">https://igv.org/app/</a></p>
+    <p><strong>Expected Output:</strong></p>
+    <p>You will see a clean, white interface with a genome track ruler at the top. By default, it usually loads the Human genome (hg38).</p>
+
+    <p><strong>2. Select Your Genome</strong></p>
+    <p>In the top-left corner, you will see a dropdown menu (likely labeled "Genomes"). Click it and select <strong>Mouse (mm10)</strong>.</p>
+
+    <p><strong>Why mm10?</strong></p>
+    <p>
+      Even though our "toy" dataset only contains data for Chromosome 19, the coordinate system we used for alignment was based on the <strong>mm10</strong> build of the mouse genome. If you selected a different mouse version (like mm9 or mm39), your peaks would appear in the wrong places (or nowhere at all), because the "addresses" of the genes would be different.
+    </p>
+
+    <p><strong>Expected Output:</strong></p>
+    <p>The track labels will update, and the ruler at the top will show chromosomes 1 through 19, X, and Y.</p>
+
+    <hr>
+
+    <h2>Phase 2: Loading Your Data</h2>
+    <p>Now we populate the empty map with our own scientific discoveries.</p>
+
+    <p><strong>1. Locate Your Files</strong></p>
+    <p>
+      Open your file manager (Finder on Mac or File Explorer on Windows) and navigate to your project folder (<code>atacseq</code>). You need the two files we generated in the previous chapters:
+    </p>
+    <ul>
+      <li><strong>The Signal Track:</strong> <code>results/visualization/ENCFF535OGL.bw</code> (This is the "Mountain")</li>
+      <li><strong>The Peak Calls:</strong> <code>results/peaks/ENCFF535OGL_peaks.narrowPeak</code> (This is the "Verdict")</li>
+    </ul>
+
+    <p><strong>2. Drag and Drop</strong></p>
+    <p>Simply click both files and <strong>drag them</strong> from your folder directly onto the white space in the web browser window.</p>
+
+    <p><strong>Expected Output:</strong></p>
+    <p>Two new horizontal tracks will appear in the browser window:</p>
+    <ul>
+      <li><strong>ENCFF535OGL.bw:</strong> Likely appears as a grey or blue histogram (bar chart).</li>
+      <li><strong>ENCFF535OGL_peaks.narrowPeak:</strong> Likely appears as a row of small blue blocks or bars.</li>
+    </ul>
+
+    <hr>
+
+    <h2>Phase 3: The Sanity Check (Verification)</h2>
+    <p>
+      Right now, you are looking at the data from "outer space"&mdash;zoomed out to show the entire genome. To verify that your analysis pipeline (Trimming → Alignment → Filtering → Peak Calling) actually worked, we need to zoom in to "street view" and check a specific biological landmark.
+    </p>
+
+    <p><strong>1. Navigate to the Data</strong></p>
+    <p>In the search bar at the top of the IGV window, type <code>chr19</code> and press <strong>Enter</strong>.</p>
+    <p><em>Why?</em> Remember, to save time and RAM, we only aligned reads to Chromosome 19. The rest of the genome is empty!</p>
+
+    <p><strong>2. Zoom to a Gene</strong></p>
+    <p>Now, let's find a specific gene to audit our results. Type <code>Lmnb2</code> in the search bar and press <strong>Enter</strong>.</p>
+    <p><em>Biological Context:</em> <em>Lmnb2</em> (Lamin B2) is a "housekeeping gene." It is essential for nuclear structure and is active in almost all cell types. Therefore, we <strong>expect</strong> its chromatin to be open.</p>
+
+    <p><strong>What You Should See:</strong></p>
+    <ul>
+      <li>
+        <strong>The Signal (BigWig Track):</strong> Look at the start of the gene (the left side, where the arrow starts). You should see a large "mountain" of reads piling up.
+        <br><em>Interpretation:</em> This pile-up confirms that the Tn5 enzyme was able to access the DNA here frequently. This is the <strong>Promoter Region</strong>, and the open chromatin confirms the gene is being transcribed.
+      </li>
+      <li>
+        <strong>The Call (NarrowPeak Track):</strong> Look directly underneath that mountain. You should see a solid blue bar.
+        <br><em>Interpretation:</em> This bar represents the statistical decision made by MACS2. It effectively says, "I have calculated the background noise, and this mountain is statistically significant. It is a real peak."
+      </li>
+    </ul>
+
+    <hr>
+
+    <h2>The Verdict</h2>
+    <p>This visual inspection is the final proof of your analysis.</p>
+    <ul>
+      <li><strong>If the blue bar perfectly aligns with the grey mountain:</strong> <strong>Congratulations!</strong> Your pipeline is valid. You have successfully transformed raw, noisy sequencing reads into biologically meaningful genomic features.</li>
+      <li><strong>If you see mountains but no blue bars:</strong> Your peak calling was too strict (MACS2 missed real data).</li>
+      <li><strong>If you see blue bars where there are no mountains:</strong> Your peak calling was too loose (MACS2 is calling noise as real).</li>
+    </ul>
+    <p>
+      With your results verified, you can now confidently proceed to use these peaks for downstream analysis, such as motif finding or gene annotation.
+    </p>
+
+    <div class="chapter-nav">
+      <a href="visualization.html" class="nav-button back">← Back: Visualization</a>
+      <a href="../index.html" class="nav-button home">Home</a>
+    </div>
+  </div>
+
+  <script>
+    function copyText(id){
+      const text = document.getElementById(id).innerText;
+      navigator.clipboard.writeText(text)
+        .then(()=>{ alert('Copied to clipboard'); })
+        .catch(()=>{ alert('Copy failed — please copy manually.'); });
+    }
+  </script>
+</body>
+</html>
+

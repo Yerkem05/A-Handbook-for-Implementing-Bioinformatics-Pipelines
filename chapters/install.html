@@ -3,111 +3,187 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Conda Setup (macOS)</title>
+  <title>Chapter 3: Stocking the Shelves (Software Setup)</title>
   <link rel="stylesheet" href="../assets/chapter.css" />
 </head>
 <body>
   <div class="content">
     <h1>Chapter 3: Conda setup on macOS (Apple Silicon)</h1>
-    <p class="lead">This chapter walks you through installing Miniconda, configuring Bioconda channels, creating an isolated environment for bioinformatics tools, and verifying everything works. Explanations are detailed and concrete so a researcher with little command-line experience can follow along.</p>
-
-    <h2 id="why">Why use Conda + Bioconda?</h2>
-    <p> 
-      Conda is a package and environment manager that <strong>solves complicated software dependencies</strong> for you. Bioconda is a community channel containing thousands of bioinformatics packages (samtools, fastqc, seqtk, etc.). Using Conda + Bioconda lets you install these tools reliably without manual compilation or conflicting library versions.
-    </p>
+    <h2 class="learning-objectives">Learning Objectives</h2>
     <ul>
-      <li><strong>Isolated environments</strong> prevent tools from clashing with each other.</li>
-      <li><strong>Reproducibility:</strong> share an environment file so others can recreate your software stack exactly.</li>
-      <li><strong>Simplicity:</strong> most tools install with one command.</li>
+      <li><strong>Conceptualize</strong> the role of a package manager (Conda) as a "Lab Manager" that handles software acquisition and compatibility.</li>
+      <li><strong>Install</strong> and configure Miniconda and the Bioconda channel to access thousands of specialized bioinformatics tools.</li>
+      <li><strong>Create</strong> and activate isolated environments to prevent software conflicts (the "sterile hood" method).</li>
+      <li><strong>Verify</strong> software installation and export environment details to ensure your analysis is reproducible by others.</li>
+    </ul>
+    <hr>
+
+    <p class="lead">
+      In the previous chapter, we built the physical structure of your lab (the folders). Now, we need to buy the equipment. In the wet lab, if you want to run a PCR, you need a thermocycler. If you want to check DNA quality, you need a Bioanalyzer. In computational biology, we need <strong>software tools</strong>. We need a tool to align reads, a tool to check quality, and a tool to call peaks.
+    </p>
+    <p>However, installing scientific software is historically a nightmare.</p>
+    <ul>
+      <li><strong>The "Dependency" Problem:</strong> Imagine you buy a new centrifuge, but the manual says it only works if you plug it into a wall outlet installed specifically in 1998, and it requires a specific brand of fuse that hasn't been made in ten years.</li>
+      <li><strong>The Conflict Problem:</strong> Imagine you fix the centrifuge, but doing so causes the freezer on the same circuit to shut down.</li>
+    </ul>
+    <p>
+      In the digital world, this happens constantly. One tool requires "Python 2.7," while another requires "Python 3.9." If you try to install both on your main computer, they clash.
+    </p>
+    <p><strong>The Solution: Conda.</strong></p>
+    <p>
+      Think of <strong>Conda</strong> as an automated Lab Manager. Instead of you manually hunting down the right version of every software library, you tell Conda: "I need to run Samtools." Conda automatically looks up the "recipe," finds the correct versions of every dependency, downloads them, and installs them in a way that doesn't break your other tools.
+    </p>
+
+    <h2>Part 1: Installing the Lab Manager (Miniconda)</h2>
+    <p>We will install a lightweight version of Conda called <strong>Miniconda</strong>.</p>
+    <p><strong>Note for Apple Users:</strong> This guide is specific to Macs with <strong>Apple Silicon</strong> (M1, M2, or M3 chips). If you bought your Mac after late 2020, this is likely you. You can check by clicking the Apple Logo (top left) → <em>About This Mac</em>. If it says "Chip: Apple M1/M2/etc," follow the steps below.</p>
+
+    <h3>Step 1: Download the Installer</h3>
+    <p>
+      Open your Terminal. We are going to use a command called <code>curl</code>. Think of this as a digital pipette—it sucks data from the internet and drops it onto your computer.
+    </p>
+    <p>Copy and paste this command:</p>
+    <pre id="cmd-curl">curl -O https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-arm64.sh</pre>
+    <button class="copy" onclick="copyText('cmd-curl')">Copy</button>
+    <p><strong>What happened?</strong> You downloaded a script file ending in <code>.sh</code>. If you type <code>ls</code>, you will see it sitting in your folder.</p>
+
+    <h3>Step 2: Run the Installer</h3>
+    <p>Now we need to actually run that script to install the program.</p>
+    <pre id="cmd-run">bash Miniconda3-latest-MacOSX-arm64.sh</pre>
+    <button class="copy" onclick="copyText('cmd-run')">Copy</button>
+    <ul>
+      <li><strong>The Process:</strong> The screen will scroll with text (the License Agreement).</li>
+      <li><strong>Your Job:</strong>
+        <ol>
+          <li>Press <strong>Enter</strong> repeatedly to scroll through the license.</li>
+          <li>Type <strong>yes</strong> when asked if you agree.</li>
+          <li>Press <strong>Enter</strong> to accept the default install location (usually <code>/Users/yourname/miniconda3</code>).</li>
+          <li><strong>Crucial Step:</strong> It will ask: "Do you wish the installer to initialize Miniconda3 by running conda init?" <strong>Type yes.</strong> This connects Conda to your terminal permanently.</li>
+        </ol>
+      </li>
     </ul>
 
-    <h2 id="install">Step 1 — Install Miniconda (Apple Silicon)</h2>
-    <p>Open the Terminal app, then run these commands exactly. They download the installer and run it.</p>
-    <pre id="cmd-install">curl -O https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-arm64.sh
-bash Miniconda3-latest-MacOSX-arm64.sh</pre>
-    <button class="copy" onclick="copyText('cmd-install')">Copy</button>
-    <div class="note">
-      When the script runs, follow prompts. Accept license, choose install location (default is fine), and allow initialization when asked.
-    </div>
-    <p><strong>Tip:</strong> If your Mac uses Intel (older Macs), use the x86 installer instead — ask me and I'll add that command.</p>
-
-    <h2 id="init">Step 2 — Initialize Conda in your shell</h2>
-    <p>After the installer finishes, either close & re-open Terminal or run the command for your shell:</p>
-    <pre id="cmd-init"># for zsh (default on recent macOS)
-source ~/.zshrc
-
-# or for bash
-source ~/.bash_profile
-
-# check conda works
-conda --version</pre>
-    <button class="copy" onclick="copyText('cmd-init')">Copy</button>
-    <p><strong>Expected output</strong>: something like <code>conda 23.9.0</code>. If you see an error, check the installer output to confirm initialization was allowed or manually add conda to your PATH following the installer's instructions.</p>
-
-    <h2 id="channels">Step 3 — Configure Bioconda channels (correct order)</h2>
+    <h3>Step 3: Waking up Conda</h3>
     <p>
-      Channel order matters. The recommended order is:
-      <strong>conda-forge → bioconda → defaults</strong> with strict channel priority. This ensures packages built for conda-forge are preferred while allowing bioconda packages to resolve correctly.
+      The installer finished, but your current Terminal window doesn't know that yet. It's like installing a new lightbulb but forgetting to flip the switch.
     </p>
-    <pre id="cmd-channels">conda config --add channels conda-forge
+    <p>To activate it, close your Terminal window completely and open a new one. Alternatively, run this command to "refresh" your settings immediately:</p>
+    <pre id="cmd-refresh">source ~/.zshrc</pre>
+    <button class="copy" onclick="copyText('cmd-refresh')">Copy</button>
+    <p><strong>Verification:</strong> To prove it worked, ask Conda to identify itself:</p>
+    <pre id="cmd-conda-version">conda --version</pre>
+    <button class="copy" onclick="copyText('cmd-conda-version')">Copy</button>
+    <p>If it replies with a version number (e.g., <code>conda 23.9.0</code>), you have successfully hired your Lab Manager.</p>
+
+    <h2>Part 2: Setting up the Suppliers (Bioconda)</h2>
+    <p>
+      Conda is the manager, but it needs to know where to buy supplies. By default, it looks at a general store. We need to point it toward the specialist biological supply store.
+    </p>
+    <p>We call these "Channels."</p>
+    <ol>
+      <li><strong>conda-forge:</strong> The general hardware store (core utilities).</li>
+      <li><strong>bioconda:</strong> The specialist bio-store (genomics tools).</li>
+    </ol>
+    <p>
+      We must set the priority order strictly. We want Conda to always prefer the high-quality community packages (conda-forge) first to ensure stability.
+    </p>
+    <p>Run these commands one by one:</p>
+    <pre id="cmd-channels">conda config --add channels defaults
+
 conda config --add channels bioconda
-conda config --add channels defaults
-conda config --set channel_priority strict
 
-# verify
-conda config --show channels</pre>
+conda config --add channels conda-forge
+
+conda config --set channel_priority strict</pre>
     <button class="copy" onclick="copyText('cmd-channels')">Copy</button>
-    <p><strong>What you should see:</strong></p>
+    <p><strong>Note:</strong> The order you run these matters! The last one added becomes the top priority. We want <code>conda-forge</code> on top.</p>
+    <p><strong>Verify the order:</strong></p>
+    <pre id="cmd-show-channels">conda config --show channels</pre>
+    <button class="copy" onclick="copyText('cmd-show-channels')">Copy</button>
+    <p><strong>You should see:</strong></p>
     <pre>channels:
+
   - conda-forge
+
   - bioconda
+
   - defaults</pre>
-    <p><strong>Why strict priority?</strong> It prevents mixing incompatible builds from different channels and makes dependency resolution more reliable.</p>
 
-    <h2 id="envs">Step 4 — Create a dedicated environment for tools</h2>
-    <p>Never install many tools into the <code>(base)</code> environment. Create an environment named <code>bio-tools</code> for our small test set (seqtk + fastqc):</p>
-    <pre id="cmd-env">conda create -n bio-tools -c bioconda seqtk fastqc
-
-# accept prompts (type y then Enter)
-conda activate bio-tools</pre>
-    <button class="copy" onclick="copyText('cmd-env')">Copy</button>
+    <h2>Part 3: Creating a "Sterile Hood" (Environments)</h2>
+    <p>This is the most critical concept in computational reproducibility.</p>
     <p>
-      After activation you should see your prompt change from <code>(base)</code> to <code>(bio-tools)</code>.
+      In a wet lab, you have a <strong>Pre-PCR Room</strong> and a <strong>Post-PCR Room</strong>. You never carry equipment between them to avoid cross-contamination.
+    </p>
+    <p>In Conda, we create <strong>Environments</strong>.</p>
+    <ul>
+      <li>The <strong>(base)</strong> environment is your hallway. It contains the bare minimum. You should <em>never</em> install your experiment's heavy tools here.</li>
+      <li>We will create a new room called <strong>bio-tools</strong> specifically for this project.</li>
+    </ul>
+
+    <h3>Step 1: Create the Environment</h3>
+    <p>
+      We will create the room and install two small tools immediately: <code>seqtk</code> (a Swiss-army knife for manipulating sequence files) and <code>fastqc</code> (for quality control).
+    </p>
+    <pre id="cmd-create-env">conda create -n bio-tools seqtk fastqc</pre>
+    <button class="copy" onclick="copyText('cmd-create-env')">Copy</button>
+    <ul>
+      <li><code>create</code>: Build a new environment.</li>
+      <li><code>-n bio-tools</code>: Name it "bio-tools".</li>
+      <li><code>seqtk fastqc</code>: Install these two tools inside it immediately.</li>
+    </ul>
+    <p>
+      Conda will calculate the "recipe" (dependencies). It might show a list of 20+ other tiny programs it needs to install to make <code>fastqc</code> work. This is good—it is solving the dependency headache for you. Type <strong>y</strong> and Enter.
     </p>
 
-    <h3>Useful environment commands</h3>
-    <pre id="cmd-env-help"># list environments
-conda env list
+    <h3>Step 2: Enter the Room (Activate)</h3>
+    <p>Creating the room isn't enough; you are still standing in the hallway (Base). You must step inside.</p>
+    <pre id="cmd-activate">conda activate bio-tools</pre>
+    <button class="copy" onclick="copyText('cmd-activate')">Copy</button>
+    <p><strong>Look at your prompt!</strong></p>
+    <p>
+      It used to say <code>(base) user@mac</code>. Now it says <code>(bio-tools) user@mac</code>.
+      You are now inside the sterile hood. Any tool you run now comes from this specific environment.
+    </p>
 
-# export environment to a YAML file for reproducibility
-conda env export --name bio-tools > meta/bio-tools-env.yml
+    <h2>Part 4: Verification and Protocol</h2>
+    <p>Did it actually work? Let's check our equipment.</p>
+    <pre id="cmd-fastqc-version">fastqc --version</pre>
+    <button class="copy" onclick="copyText('cmd-fastqc-version')">Copy</button>
+    <p>If it prints <code>FastQC v0.11.9</code> (or similar), you are ready to go.</p>
 
-# remove environment (if broken)
-conda deactivate
-conda remove -n bio-tools --all</pre>
-    <button class="copy" onclick="copyText('cmd-env-help')">Copy</button>
+    <h3>The "Frozen" Protocol</h3>
+    <p>
+      In a paper, you write: "We used FastQC v0.11.9." But what about the underlying libraries?
+      To ensure someone else can replicate your <em>exact</em> computer setup 5 years from now, we export a "YAML" file. This is a snapshot of every piece of software in your environment.
+    </p>
+    <pre id="cmd-export"># First, ensure your meta folder exists (from Chapter 2)
 
-    <h2 id="test">Step 5 — Test installation</h2>
-    <p>Try running the tools you installed to verify they work:</p>
-    <pre id="cmd-test">seqtk --help
-fastqc --version</pre>
-    <button class="copy" onclick="copyText('cmd-test')">Copy</button>
-    <p>If you see usage text for <code>seqtk</code> and a version line for <code>fastqc</code>, you are ready.</p>
+mkdir -p meta
 
-    <h2 id="troubleshoot">Troubleshooting & notes</h2>
-    <ul>
-      <li><strong>If conda command not found</strong>: re-open Terminal or run <code>source ~/.zshrc</code> (or the shell file the installer modified).</li>
-      <li><strong>Package not found</strong>: ensure channels are in the right order and run <code>conda config --show channels</code>.</li>
-      <li><strong>Solver takes long / fails</strong>: try creating smaller environments, avoid mixing pip-installed system Python packages inside conda envs for complex bio packages.</li>
-      <li><strong>Disk space</strong>: conda environments can be large; check free disk space with <code>df -h</code>.</li>
-    </ul>
+# Export the snapshot
+
+conda env export --name bio-tools > meta/bio-tools-env.yml</pre>
+    <button class="copy" onclick="copyText('cmd-export')">Copy</button>
+
+    <h2>Summary</h2>
+    <p>You have successfully:</p>
+    <ol>
+      <li>Installed the package manager (Miniconda).</li>
+      <li>Configured the biological supply lines (Bioconda).</li>
+      <li>Built a sterile workspace (bio-tools environment).</li>
+      <li>Installed your first tools (<code>fastqc</code> and <code>seqtk</code>).</li>
+    </ol>
+
+    <h2>Next Step</h2>
+    <p>
+      Your lab is built (Chapter 2) and your equipment is purchased and installed (Chapter 3). You are now ready to handle biological samples. In Chapter 4, we will download a real dataset and use FastQC to verify that our sequencing reads are healthy enough for analysis. 
+    </p>
 
     <div class="chapter-nav">
-      <a href="directory.html" class="nav-button back">← Back: Project Directory Setup</a>
+      <a href="directory.html" class="nav-button back">← Back: Setting Up Your Digital Lab Bench</a>
       <a href="../index.html" class="nav-button home">Home</a>
       <a href="fastqc.html" class="nav-button next">Next: FASTQC →</a>
     </div>
-
   </div>
 
   <script>
@@ -118,5 +194,3 @@ fastqc --version</pre>
         .catch(()=>{ alert('Copy failed — please copy manually.'); });
     }
   </script>
-</body>
-</html>

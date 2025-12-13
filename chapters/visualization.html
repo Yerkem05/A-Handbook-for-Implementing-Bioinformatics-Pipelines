@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Chapter 9: Visualization – Seeing is Believing</title>
+  <link rel="stylesheet" href="../assets/chapter.css" />
+</head>
+<body>
+  <div class="content">
+    <h1>Chapter 9: Visualization – Seeing is Believing</h1>
+
+    <h2 class="learning-objectives">Learning Objectives</h2>
+    <p>By the end of this chapter, you will be able to:</p>
+    <ul>
+      <li><strong>Differentiate</strong> between analysis file formats (<code>.bed</code>) and visualization file formats (<code>.bw</code> / BigWig).</li>
+      <li><strong>Derive</strong> accurate chromosome sizes directly from a reference genome using <code>samtools</code>.</li>
+      <li><strong>Execute</strong> a file conversion pipeline using <code>bedtools</code> to transform raw reads into a coverage track.</li>
+      <li><strong>Visualize</strong> your genomic data using the cloud-based <strong>IGV Web App</strong> (no installation required).</li>
+      <li><strong>Perform</strong> a visual "Sanity Check" by overlaying your raw signal (BigWig) with your statistical calls (Peaks).</li>
+    </ul>
+
+    <hr>
+
+    <h2>The Concept: From Spreadsheets to Landscapes</h2>
+    <p>
+      At this stage in our journey, your data exists in two primary formats: <code>final_clean_peaks.bed</code> (your filtered reads) and <code>ENCFF535OGL_peaks.narrowPeak</code> (your statistical peaks). While these files contain all your biological discoveries, they are essentially massive spreadsheets containing millions of lines of coordinates.
+    </p>
+    <p>
+      If you tried to load millions of text lines directly into a genome browser, it would overwhelm your computer's memory. To visualize the data effectively, we need to change its shape. We need to calculate <strong>Coverage</strong>—essentially counting how many reads stack up at every single base pair of the genome to form "mountains" of data.
+    </p>
+    <p>
+      We save this coverage data in a format called <strong>BigWig (<code>.bw</code>)</strong>. Unlike the text-heavy BED format ("Read A is at position 100"), a BigWig file is binary and compressed ("Position 100 has a pile height of 50"). This makes it ultra-fast for browsing. Our goal in this chapter is to convert our alignment into a BigWig file and then load it into a web browser to verify our results with our own eyes.
+    </p>
+
+    <hr>
+
+    <h2 id="phase-1">Phase 1: Tool Installation</h2>
+    <p>
+      To perform this conversion, we need to add a few more tools to our bioinformatics toolkit. We need <strong><code>samtools</code></strong> to read the reference genome index, <strong><code>bedtools</code></strong> to calculate the coverage (the "Swiss Army Knife" of genomics), and <strong><code>ucsc-bedgraphtobigwig</code></strong> to perform the final compression.
+    </p>
+    <p>Run the following command to install them into your environment:</p>
+    <pre id="cmd-install">conda activate bio-tools
+
+conda install samtools
+
+conda install -c bioconda bedtools ucsc-bedgraphtobigwig</pre>
+    <button class="copy" onclick="copyText('cmd-install')">Copy</button>
+    <p><strong>Expected Output:</strong></p>
+    <p>The terminal will display the "Package Plan" listing the dependencies to be installed. Once you type <code>y</code> and hit Enter, it will download and install the software, returning you to the command prompt when finished.</p>
+
+    <hr>
+
+    <h2 id="phase-2">Phase 2: Defining the Map Boundaries (Chromosome Sizes)</h2>
+    <p>
+      Before we can build a map of our reads, the computer needs to know the boundaries of the territory. Since we are using our "Toy" reference genome (Chromosome 19), we need a simple text file that tells the software exactly how long Chromosome 19 is. Without this, the software won't know when to stop drawing the map.
+    </p>
+
+    <h3>Step 1: Calculate the Size</h3>
+    <p>
+      We do not need to look up this information online; we can derive it directly from the reference file (<code>chr19.fa</code>) we downloaded in Chapter 6. We use <code>samtools faidx</code> (Fasta Index) to scan the file and count the bases.
+    </p>
+    <pre id="cmd-faidx"># Navigate to the reference data folder
+
+cd reference_data
+
+# Index the fasta file
+
+samtools faidx chr19.fa
+
+# View the contents of the new index file
+
+cat chr19.fa.fai</pre>
+    <button class="copy" onclick="copyText('cmd-faidx')">Copy</button>
+    <p><strong>Expected Output:</strong></p>
+    <pre>chr19	61431566	7	50	51</pre>
+    <p>
+      The second number, <strong><code>61431566</code></strong>, is the critical piece of information: it is the exact length of Chromosome 19 in base pairs.
+    </p>
+
+    <h3>Step 2: Create the Sizes File (Avoiding the "Hidden Character" Trap)</h3>
+    <p>Now we need to save this name and number into a file named <code>chr19.chrom.sizes</code>.</p>
+    <p><strong> Important Formatting Note:</strong></p>
+    <p>
+      Bioinformatics tools are extremely strict about formatting. The columns in this file must be separated by a <strong>Tab</strong> character, not a Space. If you use a space, <code>bedtools</code> will fail to read the file (as you saw in your logs with the "no valid entries" error). To ensure we create a perfect file, we use the <code>printf</code> command with <code>\t</code>, which forces the computer to insert a real Tab character.
+    </p>
+    <pre id="cmd-sizes"># Return to project root
+
+cd ..
+
+# Create the file using printf to force a TAB (\t) separator
+
+printf "chr19\t61431566\n" > reference_data/chr19.chrom.sizes</pre>
+    <button class="copy" onclick="copyText('cmd-sizes')">Copy</button>
+    <p><strong>Expected Output:</strong></p>
+    <p>
+      This command is silent. It produces no text on the screen, but if you run <code>cat reference_data/chr19.chrom.sizes</code>, you will see your properly formatted file.
+    </p>
+
+    <hr>
+
+    <h2 id="phase-3">Phase 3: Creating the Coverage Track (The BigWig)</h2>
+    <p>
+      Now that we have our map boundaries, we can convert our raw reads into a visual track. This is a standard three-step pipeline: <strong>Count -&gt; Sort -&gt; Compress</strong>.
+    </p>
+
+    <h3>Step 1: Calculate Coverage (BED to BedGraph)</h3>
+    <p>
+      We use <code>bedtools genomecov</code> to count the reads piling up at each base. We are taking our clean aligned reads (<code>final_clean_peaks.bed</code>) and asking the tool to output a "BedGraph" format text file.
+    </p>
+    <pre id="cmd-coverage"># Create a folder for visualization files
+
+mkdir -p results/visualization
+
+# Run coverage calculation
+
+# -i: Input (Your clean, aligned reads)
+
+# -g: Genome sizes file (The map boundaries)
+
+# -bg: Output format (BedGraph text file)
+
+bedtools genomecov -i results/chromap/final_clean_peaks.bed \
+
+                   -g reference_data/chr19.chrom.sizes \
+
+                   -bg > results/visualization/temp.bedgraph</pre>
+    <button class="copy" onclick="copyText('cmd-coverage')">Copy</button>
+    <p><strong>Expected Output:</strong></p>
+    <p>This command runs silently. If successful, it creates a new file <code>results/visualization/temp.bedgraph</code> and returns you to the command prompt.</p>
+
+    <h3>Step 2: Sort the Data</h3>
+    <p>
+      The compression tool we use in the next step is picky; it requires the data to be sorted by chromosome position (from the beginning of the chromosome to the end). We use the <code>sort</code> command to arrange the lines numerically.
+    </p>
+    <pre id="cmd-sort"># Sort by chromosome (column 1) then by numeric position (column 2)
+
+sort -k1,1 -k2,2n results/visualization/temp.bedgraph > results/visualization/sorted.bedgraph</pre>
+    <button class="copy" onclick="copyText('cmd-sort')">Copy</button>
+    <p><strong>Expected Output:</strong></p>
+    <p>This command also runs silently. It reads your temp file and saves the sorted version as <code>results/visualization/sorted.bedgraph</code>.</p>
+
+    <h3>Step 3: Compress to BigWig (BedGraph to BigWig)</h3>
+    <p>
+      Finally, we convert the text file into the binary BigWig format using the <code>bedGraphToBigWig</code> tool. This dramatically reduces the file size and makes it readable by web browsers.
+    </p>
+    <pre id="cmd-bigwig">bedGraphToBigWig results/visualization/sorted.bedgraph \
+
+                 reference_data/chr19.chrom.sizes \
+
+                 results/visualization/ENCFF535OGL.bw</pre>
+    <button class="copy" onclick="copyText('cmd-bigwig')">Copy</button>
+    <p><strong>Expected Output:</strong></p>
+    <p>This command runs silently. It creates your final result file: <code>results/visualization/ENCFF535OGL.bw</code>.</p>
+
+    <p><strong>Clean Up:</strong></p>
+    <p>
+      We no longer need the intermediate text files (<code>temp.bedgraph</code> and <code>sorted.bedgraph</code>). It is good practice to delete them to keep your folders tidy.
+    </p>
+    <pre id="cmd-clean">rm results/visualization/*.bedgraph</pre>
+    <button class="copy" onclick="copyText('cmd-clean')">Copy</button>
+
+    <div class="chapter-nav">
+      <a href="peak-calling.html" class="nav-button back">← Back: Peak Calling &amp; QC</a>
+      <a href="../index.html" class="nav-button home">Home</a>
+      <a href="chapter10.html" class="nav-button next">Next: Visual Verification →</a>
+    </div>
+  </div>
+  <script>
+    function copyText(id){
+      const text = document.getElementById(id).innerText;
+      navigator.clipboard.writeText(text)
+        .then(()=>{ alert('Copied to clipboard'); })
+        .catch(()=>{ alert('Copy failed — please copy manually.'); });
+    }
+  </script>
+</body>
+</html>
