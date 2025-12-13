@@ -3,102 +3,171 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Project Directory Setup</title>
+  <title>Chapter 2: Setting Up Your Digital Lab Bench</title>
   <link rel="stylesheet" href="../assets/chapter.css" />
 </head>
 <body>
   <div class="content">
-    <h1>Chapter 2: Project Directory Setup</h1>
-    <p class="lead">How to create a clean, reproducible folder structure for an ATAC-seq analysis project on Unix-like systems (macOS, Linux, or WSL).</p>
-
-    <h2 id="why">Why structure your project?</h2>
+    <h1>Chapter 2: Setting Up Your Digital Lab Bench</h1>
+    <h2 class="learning-objectives">Learning Objectives</h2>
+    <ul>
+      <li><strong>Translate</strong>wet-lab organizational skills (labeling, separating reagents) into a digital workspace.</li>
+      <li><strong>Construct</strong> a standardized, reproducible folder hierarchy for genomics projects using the command line.</li>
+      <li><strong>Differentiate</strong> between the purposes of key subdirectories (<code>raw_data</code>, <code>scripts</code>, <code>results</code>) to prevent data loss and confusion.</li>
+      <li><strong>Apply</strong> absolute and relative navigation commands (<code>pwd</code>, <code>cd</code>) to move confidently through your project structure.</li>
+    </ul>
+    <hr/>
+    <p class="lead">
+      Welcome to the command line. If you are coming from a wet lab background, looking at a blank terminal window with a blinking cursor can feel like walking into a lab where the lights are off, the benches are empty, and you don't know where the pipettes are stored.
+      This chapter is about turning that empty black box into a fully organized, functional workspace.
+    </p>
     <p>
-      A consistent directory layout keeps your files organized, makes pipelines reproducible, and helps collaborators (or future you!) understand where data, scripts, references and results live. The layout below is minimal but practical for most ATAC-seq pipelines.
+      In the wet lab, you wouldn't start an expensive ATAC-seq library preparation on a cluttered desk covered in old coffee cups and loose papers. You would wipe down the bench, arrange your racks, label your tubes, and set out your reagents. We are going to do the exact same thing here, but instead of plastic tubes and buffers, we are organizing <strong>directories (folders)</strong> and <strong>files</strong>.
     </p>
 
-    <h2 id="commands">Commands — create the directory tree</h2>
-    <p>Run the following commands in your terminal. They create the project root and a set of subfolders for raw data, references, scripts, logs, metadata, and some results folders.</p>
-    <pre id="cmd-directory"># start in your home directory (optional)
-cd
-pwd
+    <h2>Part 1: The Philosophy of Structure</h2>
+    <p><strong>Why does the folder layout matter?</strong></p>
+    <p>
+      Imagine you finish your ATAC-seq experiment, get beautiful peaks, and publish a paper. Two years later, a grad student wants to re-analyze your data to look for a specific transcription factor footprint. They open your project folder.
+    </p>
+    <p>
+      If your folder is a mess of files named <code>analysis_final_v2.txt</code> and <code>test_run_new.bam</code> all dumped in one place, that data is effectively dead. They won't know which file was the raw data, which was the filtered data, or which reference genome you used.
+    </p>
+    <p>We organize our project to ensure <strong>Reproducibility</strong>.</p>
+    <ul>
+      <li><strong>The "Raw Data" is sacred:</strong> Just like a clinical tissue sample, if you lose or corrupt the raw sequencing data, you can't get it back without paying thousands of dollars. We need a safe place for it.</li>
+      <li><strong>The "Protocol" must be clear:</strong> In the wet lab, you have a lab notebook. In the dry lab, your "scripts" are your notebook. They need their own dedicated shelf.</li>
+      <li><strong>The "Trash" is separate:</strong> We generate a lot of intermediate garbage files during analysis. We need to know what can be thrown away and what must be kept.</li>
+    </ul>
 
-# create the project folder and enter it
-mkdir atacseq
-cd atacseq
+    <h2>Part 2: Laying the Foundation</h2>
+    <p>Let’s build this structure together, step by step. Open your terminal.</p>
 
-# create main subfolders
-mkdir raw_data reference_data scripts logs meta
+    <h3>Step 1: finding your footing (<code>pwd</code> and <code>cd</code>)</h3>
+    <p>When you first open a terminal, you are usually standing in your "Home" directory. This is your personal room in the massive building that is the computer's hard drive.</p>
+    <p>To verify where you are, type:</p>
+    <pre id="cmd-pwd">pwd</pre>
+    <button class="copy" onclick="copyText('cmd-pwd')">Copy</button>
+    <p><strong>What this does:</strong> <code>pwd</code> stands for <strong>P</strong>rint <strong>W</strong>orking <strong>D</strong>irectory. It asks the computer: "Where am I right now?"</p>
+    <p><strong>Expected Output:</strong> You should see something like <code>/Users/yourname</code> (macOS) or <code>/home/yourname</code> (Linux).</p>
+    <p>Now, let's make sure we start fresh by moving to this home base (just in case you were somewhere else):</p>
+    <pre id="cmd-cd">cd</pre>
+    <button class="copy" onclick="copyText('cmd-cd')">Copy</button>
+    <p><strong>What this does:</strong> <code>cd</code> stands for <strong>C</strong>hange <strong>D</strong>irectory. Typing it with no arguments is the equivalent of "clicking the Home button." It teleports you back to your user folder.</p>
 
-# create results subfolders (use -p to make parent 'results' if it doesn't exist)
-mkdir -p results/fastqc results/bowtie2
+    <h3>Step 2: Creating the Project Root (<code>mkdir</code>)</h3>
+    <p>We need a main box to hold our entire experiment. We will call it <code>atacseq</code>.</p>
+    <pre id="cmd-mkdir-root">mkdir atacseq</pre>
+    <button class="copy" onclick="copyText('cmd-mkdir-root')">Copy</button>
+    <p><strong>What this does:</strong> <code>mkdir</code> stands for <strong>M</strong>ake <strong>Dir</strong>ectory. You have just created a new empty folder.</p>
+    <p>Now, we must physically walk <em>into</em> that folder to start working.</p>
+    <pre id="cmd-cd-project">cd atacseq</pre>
+    <button class="copy" onclick="copyText('cmd-cd-project')">Copy</button>
+    <p>If you type <code>pwd</code> again, you will see your location has updated. You are now "inside" the project.</p>
 
-# Optional: show the full structure (recursive)
-ls -R</pre>
-    <button class="copy" onclick="copyText('cmd-directory')">Copy</button>
-    <div class="note">
-      <strong>Tip:</strong> run these commands from your home directory or wherever you keep your projects.
-    </div>
+    <h2>Part 3: Building the Departments</h2>
+    <p>Now that we are inside the <code>atacseq</code> folder, we need to create specific sub-rooms for different types of materials. In a wet lab, you wouldn't store your 4°C enzymes in the 37°C incubator. Similarly, we don't mix raw data with results.</p>
+    <p>Run this command to create the primary structure:</p>
+    <pre id="cmd-subfolders">mkdir raw_data reference_data scripts logs meta</pre>
+    <button class="copy" onclick="copyText('cmd-subfolders')">Copy</button>
 
-    <h2 id="explain">What each command does (plain English)</h2>
-    <dl>
-      <dt><code>cd</code></dt>
-      <dd>Change directory. With no arguments it takes you to your home folder (e.g., <code>/Users/yourname</code>).</dd>
+    <h4>1. <code>raw_data/</code> (The -80°C Freezer)</h4>
+    <ul>
+      <li><strong>Biological Context:</strong> This is where your FASTQ files go immediately after you download them from the sequencing core.</li>
+      <li><strong>The Golden Rule:</strong> <strong>This folder is Read-Only.</strong> You put files in, but you <em>never</em> edit them, open them, or save over them. If you mess up your analysis, you can always go back to the <code>raw_data</code> and start over. If you mess up the <code>raw_data</code>, the experiment is over.</li>
+    </ul>
 
-      <dt><code>pwd</code></dt>
-      <dd>Prints the current working directory — useful to confirm you are in the expected location.</dd>
+    <h4>2. <code>reference_data/</code> (The Library/Textbooks)</h4>
+    <ul>
+      <li><strong>Biological Context:</strong> To analyze ATAC-seq, we need to map your reads to a genome (like Human hg38 or Mouse mm10). This folder holds the genome sequence (FASTA files) and the gene annotations (GTF files).</li>
+      <li><strong>Why separate it?</strong> These files are huge and rarely change. By keeping them here, you avoid cluttering your analysis folders.</li>
+    </ul>
 
-      <dt><code>mkdir atacseq</code></dt>
-      <dd>Creates a new folder named <code>atacseq</code> — this will be your project root.</dd>
+    <h4>3. <code>scripts/</code> (The Lab Notebook)</h4>
+    <ul>
+      <li><strong>Biological Context:</strong> This is where you save the code you write.</li>
+      <li><strong>Analogy:</strong> If you were doing a Western Blot, you would write down the antibody concentrations and incubation times. In bioinformatics, the "script" <em>is</em> the protocol. It tells the computer exactly how to process the samples.</li>
+    </ul>
 
-      <dt><code>cd atacseq</code></dt>
-      <dd>Enter the project directory so all subsequent commands operate inside it.</dd>
+    <h4>4. <code>logs/</code> (The Troubleshooting Journal)</h4>
+    <ul>
+      <li><strong>Biological Context:</strong> When you run a bioinformatics tool, it spits out text telling you what it did ("Processed 1 million reads...").</li>
+      <li><strong>Why separate it?</strong> Sometimes tools crash. The "error message" is your only clue to what went wrong. We redirect those messages into this folder so your screen doesn't get flooded, but the record is kept for debugging.</li>
+    </ul>
 
-      <dt><code>mkdir raw_data reference_data scripts logs meta</code></dt>
-      <dd>Creates several subfolders:
-        <ul>
-          <li><strong>raw_data</strong> — store raw FASTQ files here.</li>
-          <li><strong>reference_data</strong> — reference genomes, indexes, annotations.</li>
-          <li><strong>scripts</strong> — pipeline scripts, helper scripts.</li>
-          <li><strong>logs</strong> — log files from runs (stdout/stderr) for reproducibility and debugging.</li>
-          <li><strong>meta</strong> — sample sheets, metadata, README files.</li>
-        </ul>
-      </dd>
+    <h4>5. <code>meta/</code> (The Sample Sheet)</h4>
+    <ul>
+      <li><strong>Biological Context:</strong> This contains the "metadata." Which sample is Control? Which is Treated? Which replicate is which? It’s the spreadsheet that decodes the filenames.</li>
+    </ul>
 
-      <dt><code>mkdir -p results/fastqc results/bowtie2</code></dt>
-      <dd>The <code>-p</code> flag creates parent directories as needed (here, <code>results</code>), then the child folders <code>fastqc</code> and <code>bowtie2</code>. These store pipeline outputs (QC reports, aligner outputs).</dd>
+    <h2>Part 4: Preparing for Results</h2>
+    <p>
+      We are almost done. We need a place to put our output. However, we anticipate that we will use different tools, and we don't want all the results mixed together.
+    </p>
+    <p>We will use a special trick with <code>mkdir</code> here:</p>
+    <pre id="cmd-results">mkdir -p results/fastqc results/bowtie2</pre>
+    <button class="copy" onclick="copyText('cmd-results')">Copy</button>
+    <p><strong>The <code>-p</code> Flag (Parent Mode):</strong></p>
+    <p>
+      Normally, if you told the computer "Make a folder called <code>fastqc</code> inside <code>results</code>," it would complain: "Error: The folder 'results' doesn't exist yet!"
+    </p>
+    <p>
+      The <code>-p</code> flag tells the computer: "If the parent folder (results) doesn't exist, please create it for me first, and then create the child folder inside it."
+    </p>
+    <p><strong>What are these specific result folders?</strong></p>
+    <ul>
+      <li><strong><code>results/fastqc</code>:</strong> This is for <strong>Quality Control</strong>. Before analyzing biological biology, we check technical chemistry. Did the sequencing reaction work? Are the reads high quality?</li>
+      <li><strong><code>results/bowtie2</code>:</strong> This is for <strong>Alignment</strong>. This is the step where we figure out where each DNA fragment belongs on the chromosomes.</li>
+    </ul>
 
-      <dt><code>ls -R</code></dt>
-      <dd>Lists directory contents recursively so you can confirm the structure (subfolders inside <code>results</code>, etc.).</dd>
-    </dl>
+    <h2>Part 5: Verification</h2>
+    <p>You have typed the commands, but how do you know it worked? Let's take a bird's-eye view of your creation.</p>
+    <p>Run this command:</p>
+    <pre id="cmd-ls">ls -R</pre>
+    <button class="copy" onclick="copyText('cmd-ls')">Copy</button>
+    <p><strong>What this does:</strong> <code>ls</code> lists files. The <code>-R</code> flag stands for <strong>R</strong>ecursive. It acts like an X-ray, showing you the current folder, plus everything inside the subfolders, and the sub-subfolders.</p>
+    <p><strong>You should see this structure:</strong></p>
+    <pre>.<br>
+logs  meta  raw_data  reference_data  results  scripts
 
-    <h2 id="example">Example directory tree (expected output)</h2>
-    <pre>logs/  raw_data/  reference_data/  results/  scripts/  meta/
+./logs:
+
+./meta:
+
+./raw_data:
+
+./reference_data:
 
 ./results:
-  bowtie2/  fastqc/</pre>
-    <p>If you run <code>ls -R</code> you should see a top-level listing and then the <code>./results</code> children (fastqc, bowtie2).</p>
 
-    <h2 id="best-practices">Best practices & notes</h2>
-    <ul>
-      <li><strong>Keep raw data read-only:</strong> Never overwrite files in <code>raw_data</code>. Use copies if you need to transform files for tests.</li>
-      <li><strong>Use meaningful names:</strong> Name files and sample sheets clearly (e.g., <code>sample01_rep1_R1.fastq.gz</code>).</li>
-      <li><strong>Store commands and environment info:</strong> Save the exact commands and Conda/Container environment YAMLs in <code>meta</code> to improve reproducibility.</li>
-      <li><strong>Logs:</strong> Redirect tool output to <code>logs/toolname_timestamp.log</code> to capture warnings and errors for debugging.</li>
-      <li><strong>Version control:</strong> Keep scripts under Git in <code>scripts/</code> and add a top-level <code>README.md</code> describing the layout and usage.</li>
-    </ul>
+bowtie2  fastqc
 
-    <h2 id="troubleshoot">Troubleshooting</h2>
-    <ul>
-      <li><strong>Permission errors:</strong> If you see "permission denied" while creating folders, check you are not trying to write to a protected directory. Use <code>chmod</code> or create the project under your home directory.</li>
-      <li><strong>Folder already exists:</strong> If <code>mkdir</code> fails because a folder exists, either remove it (careful) or use <code>mkdir -p</code> which won't error for existing paths.</li>
-    </ul>
+./results/bowtie2:
 
-    <h2 id="next">Next steps</h2>
+./results/fastqc:
+
+./scripts:</pre>
+
+    <h3>Summary checklist</h3>
+    <p>If you see the output above, congratulations! You have successfully set up your digital lab bench.</p>
     <ol>
-      <li>Add a <code>README.md</code> explaining the directory purpose and sample naming conventions.</li>
-      <li>Create a Conda environment YAML and save it as <code>meta/conda-env.yml</code>.</li>
-      <li>Add a simple run script in <code>scripts/</code> (e.g., <code>scripts/run_fastqc.sh</code>) that writes logs to <code>logs/</code> and outputs to <code>results/fastqc</code>.</li>
+      <li><strong><code>raw_data</code></strong>: Empty for now. Waiting for FASTQ files.</li>
+      <li><strong><code>reference_data</code></strong>: Empty. Waiting for the genome.</li>
+      <li><strong><code>results</code></strong>: Has two dedicated buckets (<code>fastqc</code>, <code>bowtie2</code>) ready to catch data.</li>
     </ol>
+
+    <h3>Troubleshooting</h3>
+    <ul>
+      <li><strong>"Permission Denied":</strong> You might be trying to create folders in a system directory (like <code>/root</code> or <code>/usr</code>). Make sure you ran <code>cd</code> first to get to your home directory.</li>
+      <li><strong>"File exists":</strong> You might have run the command twice. That's okay! <code>mkdir -p</code> is safe to run multiple times; it won't delete what is already there.</li>
+    </ul>
+
+    <hr>
+
+    <h2>Next Step for You</h2>
+    <p>
+      Now that your "bench" is clean and organized, we need to buy the equipment. You wouldn't start an experiment without pipettes and a centrifuge, and we can't analyze DNA without software. In Chapter 3, I will guide you through installing Conda (your digital lab manager) and setting up the essential tools you will need to run your experiments.
+    </p>
 
     <div class="chapter-nav">
       <a href="intro.html" class="nav-button back">← Back: ATAC-seq Overview</a>

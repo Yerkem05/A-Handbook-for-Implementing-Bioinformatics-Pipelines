@@ -3,192 +3,121 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>FASTQC (ENCODE example)</title>
+  <title>Chapter 4: The Quality Check (FastQC)</title>
   <link rel="stylesheet" href="../assets/chapter.css" />
 </head>
 <body>
   <div class="content">
-    <h1>Chapter 4: FASTQC (ENCODE example)</h1>
+    <h1>Chapter 4: The Quality Check (FastQC)</h1>
+
     <h2 class="learning-objectives">Learning Objectives</h2>
     <ul>
-      <li>Download a public ATAC-seq FASTQ file from ENCODE</li>
-      <li>Create a randomized smaller subset for testing using <code>seqtk</code></li>
-      <li>Run FastQC on sequencing data to assess quality</li>
-      <li>Inspect and interpret FastQC results to evaluate data quality</li>
+      <li>Retrieve raw sequencing data directly from public repositories (ENCODE) using command-line tools.</li>
+      <li>Create a reproducible "digital aliquot" (subset) of data using <code>seqtk</code> to test your pipeline efficiently.</li>
+      <li>Execute the FastQC tool to generate quality assessment reports.</li>
+      <li>Interpret the basic structure of a FastQC report to decide if data is suitable for downstream analysis.</li>
     </ul>
 
     <div class="workflow-section">
-      <h3>Why FastQC Analysis is Essential</h3>
-      <p>
-        FastQC is the critical first step in any sequencing data analysis pipeline. Before proceeding with downstream analysis like alignment, variant calling, or differential expression, you must assess the quality of your raw sequencing data. Quality issues such as adapter contamination, low-quality bases, or systematic biases can lead to incorrect results and wasted computational resources.
-      </p>
-      <p>
-        The flowchart below illustrates a typical bioinformatics pipeline, where quality assessment with FastQC is the foundational step that informs all subsequent processing decisions:
-      </p>
-      <img src="../assets/images/flowchart.png" alt="Data processing pipeline flowchart showing FastQC as the first step, followed by adapter trimming, alignment, and duplicate removal">
-      <p class="figure-caption">
-        <strong>Figure:</strong> Typical sequencing data processing pipeline. FastQC quality assessment (Step 1) must be performed before any downstream analysis. The results guide decisions about adapter trimming, quality filtering, and help identify potential issues that could affect alignment and quantification steps.
-      </p>
+      <h3>Introduction: The "Digital Nanodrop"</h3>
+      <p>Imagine you just received a box of dry ice from a sequencing facility. Inside are tubes of DNA. Before you use that DNA for a crucial, expensive experiment, what is the first thing you do?</p>
+      <p>You run it on a Nanodrop or a Bioanalyzer. You need to know: Is the DNA degraded? Is there contamination? Is the concentration what they promised?</p>
+      <p>In computational biology, we have the exact same problem. You have just received a file containing millions of sequencing reads (a FASTQ file). Before you spend days trying to map these reads to a genome, you must verify that the sequencing run actually worked.</p>
+      <p>To do this, we use a tool called FastQC. It is the standard "Bioanalyzer" of the bioinformatics world.</p>
     </div>
 
-    <h2 id="dataset">Dataset overview & ethical note</h2>
-    <p>
-      Example dataset (ENCODE): <strong>ENCFF535OGL</strong>, from experiment ENCSR862JVD. For this handbook we use a mouse (Mus musculus) sample to avoid human-data ethical concerns during demonstrations.
+    <img src="../assets/images/flowchart.png" alt="Data processing pipeline flowchart showing FastQC as the first step, followed by adapter trimming, alignment, and duplicate removal">
+    <p class="figure-caption">
+      <strong>Figure:</strong> Typical sequencing data processing pipeline. FastQC quality assessment (Step 1) must be performed before any downstream analysis. The results guide decisions about adapter trimming, quality filtering, and help identify potential issues that could affect alignment and quantification steps.
     </p>
-    <ul>
-      <li><strong>Assay:</strong> ATAC-seq</li>
-      <li><strong>Platform:</strong> Illumina NextSeq 500 (typical for small experiments)</li>
-      <li><strong>Biosample:</strong> C57BL/6J mouse monocyte (adult)</li>
-      <li><strong>Note:</strong> Always check data usage terms of repositories and avoid using identifiable human data without approvals.</li>
-    </ul>
 
-    <h2 id="setup">Step 0 — Make sure tools are available</h2>
-    <p>Activate the environment we created earlier (example name: <code>bio-tools</code>), so <code>seqtk</code>, <code>wget</code>, and <code>fastqc</code> are available.</p>
+    <h2>Part 1: Entering the Lab</h2>
+    <p>First, we need to make sure we are wearing our lab coat. In Chapter 3, we created a specific environment called <code>bio-tools</code> where we installed our software. We need to put that coat on now.</p>
+    <p><strong>Open your terminal and run:</strong></p>
     <pre id="cmd-activate">conda activate bio-tools</pre>
     <button class="copy" onclick="copyText('cmd-activate')">Copy</button>
-
-    <h2 id="nav">Step 1 — Navigate to your project raw_data folder</h2>
-    <p>Use the folder structure from Chapter 1. If you followed that structure your raw reads go here:</p>
-    <pre id="cmd-cd">cd ~/atacseq/raw_data
-pwd   # confirm you are in the correct folder</pre>
+    <p><strong>Check:</strong> Does your prompt start with <code>(bio-tools)</code>? If yes, you are ready.</p>
+    <p>Now, walk to the "freezer" where we decided to store our raw samples (Chapter 2).</p>
+    <pre id="cmd-cd">cd ~/atacseq/raw_data</pre>
     <button class="copy" onclick="copyText('cmd-cd')">Copy</button>
 
-    <h2 id="download">Step 2 — Download the FASTQ file from ENCODE</h2>
-    <p>ENCODE files can be downloaded using their file URL. Run:</p>
+    <h2>Part 2: Retrieving the Sample</h2>
+    <p>For this handbook, we won't make you sequence your own DNA. We will use a high-quality public dataset from ENCODE (The Encyclopedia of DNA Elements).</p>
+    <p><strong>The Biological Context:</strong></p>
+    <ul>
+      <li>We are downloading an ATAC-seq dataset from a Mouse Monocyte (immune cell).</li>
+      <li><strong>Why Mouse?</strong> To avoid the ethical and privacy complexities of handling Human genomic data for a tutorial.</li>
+      <li><strong>Why Monocytes?</strong> Immune cells have very dynamic chromatin. ATAC-seq is perfect for seeing which genes are "open" and active in these cells.</li>
+    </ul>
+    <p>We will use a tool called <code>wget</code> (Web Get). Think of <code>wget</code> as a digital courier service. You give it an address (URL), and it goes out to the internet and brings the package back to your current folder.</p>
+    <p><strong>Run this command:</strong></p>
     <pre id="cmd-wget">wget https://www.encodeproject.org/files/ENCFF535OGL/@@download/ENCFF535OGL.fastq.gz</pre>
     <button class="copy" onclick="copyText('cmd-wget')">Copy</button>
-    <div class="note">
-      If <code>wget</code> is not installed, install with <code>conda install wget</code>.
-    </div>
-    <p><strong>Progress & expected result:</strong> the file <code>ENCFF535OGL.fastq.gz</code> should appear in <code>~/atacseq/raw_data</code>. Use <code>ls -lh</code> to check file size and timestamp.</p>
+    <p><strong>What is happening?</strong> You will see a progress bar filling up. You are downloading a compressed file (<code>.gz</code> stands for gzip, like a .zip file). Once it finishes, type <code>ls -lh</code>. You should see the file <code>ENCFF535OGL.fastq.gz</code> sitting in your folder.</p>
 
-    <h2 id="subsample">Step 3 — Subsample the FASTQ using <code>seqtk</code></h2>
-    <p>
-      Large FASTQ files can be many gigabytes. For tutorials and quick tests we usually create a smaller, randomized subset. <code>seqtk sample -s SEED IN_FASTQ N</code> draws <strong>N</strong> reads at random using a seed for reproducibility.
-    </p>
-    <pre id="cmd-seqtk"># Example: take 1,000,000 reads (single-end). The -s 100 sets a reproducible random seed.
-seqtk sample -s 100 ENCFF535OGL.fastq.gz 1000000 | gzip > ENCFF535OGL_subset.fastq.gz</pre>
+    <h2>Part 3: Creating a "Digital Aliquot" (Subsampling)</h2>
+    <p>The file you just downloaded is large. Running a test on the whole thing might take 10-20 minutes. When you are building a pipeline or learning, you don't want to wait that long just to see if your code works.</p>
+    <p>In the wet lab, you wouldn't use your entire stock of antibody for a test run. You would take a small aliquot.</p>
+    <p>We will do the same using a tool called <code>seqtk</code>. We will randomly grab 1 million reads to play with.</p>
+    <p><strong>The Command (Run this carefully):</strong></p>
+    <pre id="cmd-seqtk">seqtk sample -s 100 ENCFF535OGL.fastq.gz 1000000 | gzip > ENCFF535OGL_subset.fastq.gz</pre>
     <button class="copy" onclick="copyText('cmd-seqtk')">Copy</button>
+    <p><strong>Breaking down the "Pipeline" logic:</strong></p>
     <ul>
-      <li><strong>1000000</strong> = number of reads to sample. Choose smaller (10000) or larger based on your needs. For paired-end data you should sample read pairs (use seqtk with appropriate flags or sample by reads per pair; see paired examples).</li>
-      <li><strong>-s 100</strong> fixes the RNG seed so your sampling is reproducible (same subset every run).</li>
-      <li>Piping through <code>gzip</code> compresses the subset and saves disk space.</li>
+      <li><code>seqtk sample</code>: "Hey seqtk, I want to sample some reads."</li>
+      <li><code>-s 100</code>: The Seed. By setting this to 100, we ensure reproducible sampling.</li>
+      <li><code>ENCFF...</code>: The input file we are reading from.</li>
+      <li><code>1000000</code>: We want exactly one million reads.</li>
+      <li><code>|</code> (Pipe): Takes the output of <code>seqtk</code> and sends it into the next command.</li>
+      <li><code>gzip</code>: Compresses the reads immediately to save space.</li>
+      <li><code>&gt;</code> (Redirect): Saves the final compressed data into <code>ENCFF535OGL_subset.fastq.gz</code>.</li>
     </ul>
+    <p>You now have two files: the big original one, and your small, light, easy-to-use subset.</p>
 
-    <h2 id="fastqc">Step 4 — Run FastQC on the subset</h2>
-    <p>FastQC produces an HTML report summarizing per-base quality, adapter content, and other QC metrics.</p>
+    <h2>Part 4: Running the Quality Check</h2>
+    <p>Now we have our aliquot. It's time to run the Bioanalyzer (FastQC). We want the results to go into our organized <code>results/fastqc</code> folder, not clutter up our <code>raw_data</code> folder.</p>
+    <p><strong>Run the QC:</strong></p>
     <pre id="cmd-fastqc">fastqc ENCFF535OGL_subset.fastq.gz -o ../results/fastqc/</pre>
     <button class="copy" onclick="copyText('cmd-fastqc')">Copy</button>
-    <p><strong>Expected output</strong> (terminal message):</p>
+    <p><strong>The Output:</strong></p>
     <pre>Analysis complete for ENCFF535OGL_subset.fastq.gz</pre>
-    <p>The FastQC run will create an <code>.html</code> report and a <code>.zip</code> archive inside <code>../results/fastqc/</code> (relative to <code>raw_data</code>).</p>
 
-    <h2 id="inspect">Step 5 — Inspect results</h2>
-    <p>Go to the results folder and list files:</p>
-    <pre id="cmd-inspect">cd ../results/fastqc/
-ls -lh</pre>
-    <button class="copy" onclick="copyText('cmd-inspect')">Copy</button>
-    <p>You should see files similar to:</p>
-    <pre>-rw-r--r--  1 you  staff  719K Oct 22 00:25 ENCFF535OGL_subset_fastqc.html
--rw-r--r--  1 you  staff  880K Oct 22 00:25 ENCFF535OGL_subset_fastqc.zip</pre>
-    <p>Open the HTML report in your default browser:</p>
-    <pre id="cmd-open">open ENCFF535OGL_subset_fastqc.html</pre>
-    <button class="copy" onclick="copyText('cmd-open')">Copy</button>
-    <p>The FastQC HTML report contains the following quality control modules:</p>
-    
-    <table>
-      <thead>
-        <tr>
-          <th>Module</th>
-          <th>Description</th>
-          <th>What to Look For</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><strong>Basic Statistics</strong></td>
-          <td>Overview of FASTQ file including total sequences, length, %GC content, and quality encoding.</td>
-          <td>Verify file processed correctly and matches expected sequencing parameters.</td>
-        </tr>
-        <tr>
-          <td><strong>Per Base Sequence Quality</strong></td>
-          <td>Average Phred quality score at each position along the read length (displayed as boxplot).</td>
-          <td>Consistently high scores (Q20-30+). Quality degradation at 3' end may require trimming.</td>
-        </tr>
-        <tr>
-          <td><strong>Per Tile Sequence Quality</strong></td>
-          <td>Quality scores averaged across each tile position on the Illumina flow cell.</td>
-          <td>Uniform quality across tiles. Lower quality in specific tiles indicates technical issues.</td>
-        </tr>
-        <tr>
-          <td><strong>Per Sequence Quality Scores</strong></td>
-          <td>Distribution of mean quality scores per read sequence (histogram).</td>
-          <td>Normal distribution centered on high quality scores. Low quality peaks indicate poor reads.</td>
-        </tr>
-        <tr>
-          <td><strong>Per Base Sequence Content</strong></td>
-          <td>Percentage of each nucleotide (A, T, G, C) at each position along reads.</td>
-          <td>~25% of each base at every position. Deviations indicate adapter contamination or PCR bias.</td>
-        </tr>
-        <tr>
-          <td><strong>Per Sequence GC Content</strong></td>
-          <td>Distribution of GC content across all sequences compared to theoretical normal distribution.</td>
-          <td>Normal distribution centered on expected GC content. Unusual distributions suggest contamination.</td>
-        </tr>
-        <tr>
-          <td><strong>Per Base N Content</strong></td>
-          <td>Percentage of N (ambiguous base) calls at each position.</td>
-          <td>0% or very low N content. High N content indicates poor base calling or sequencing issues.</td>
-        </tr>
-        <tr>
-          <td><strong>Sequence Length Distribution</strong></td>
-          <td>Distribution of read lengths in your dataset.</td>
-          <td>Single sharp peak for uniform read lengths. Multiple peaks suggest adapter contamination or trimming artifacts.</td>
-        </tr>
-        <tr>
-          <td><strong>Sequence Duplication Levels</strong></td>
-          <td>Percentage of sequences present at different duplication levels (1x, 2x, 3x, etc.).</td>
-          <td>Low duplication levels. High duplication (>50%) may indicate PCR bias or artifacts in genomic sequencing.</td>
-        </tr>
-        <tr>
-          <td><strong>Overrepresented Sequences</strong></td>
-          <td>Sequences appearing more frequently than expected, with possible source identification.</td>
-          <td>No overrepresented sequences. If adapters/primer sequences found, trimming is necessary.</td>
-        </tr>
-        <tr>
-          <td><strong>Adapter Content</strong></td>
-          <td>Cumulative percentage of adapter contamination detected at each position along reads.</td>
-          <td>No adapter content. If >5% detected, adapter trimming required before downstream analysis.</td>
-        </tr>
-      </tbody>
-    </table>
-    
-    <p><strong>Interpreting FastQC Results:</strong> FastQC assigns a status (✓ pass, ⚠ warning, ✗ fail) to each module. While warnings and failures indicate potential issues, context matters—some "failures" may be acceptable depending on your experimental design and downstream analysis needs. Use these metrics to guide quality filtering and trimming decisions.</p>
-    
-    <div class="note">
-      <strong>Note:</strong> We will dissect the details of each FastQC report data visualization in the next chapter.
-    </div>
+    <h2>Part 5: Viewing the Report</h2>
+    <p>FastQC doesn't print the results to the terminal. It generates a visual HTML report, just like a website.</p>
+    <p>Let's move into the results folder to find it:</p>
+    <pre id="cmd-results">cd ../results/fastqc/
 
-    <h2 id="cleanup">Extra: remove large files</h2>
-    <p>If you want to remove the full original FASTQ to save space (be careful), run:</p>
-    <pre id="cmd-rm">rm ENCFF535OGL.fastq.gz</pre>
-    <button class="copy" onclick="copyText('cmd-rm')">Copy</button>
-    <p><strong>Warning:</strong> only delete files once you are certain you don’t need them.</p>
-
-    <h2 id="troubleshoot2">Troubleshooting</h2>
+ls</pre>
+    <button class="copy" onclick="copyText('cmd-results')">Copy</button>
+    <p>You will see two files: a <code>.zip</code> file (the raw data) and an <code>.html</code> file (the report).</p>
+    <p><strong>Opening the file:</strong></p>
     <ul>
-      <li><strong>wget 404 or permission error:</strong> confirm the URL in your browser, and that the file’s access is public. ENCODE sometimes requires specific download methods; open the file page and copy the “download” link.</li>
-      <li><strong>seqtk: command not found:</strong> ensure <code>conda activate bio-tools</code> and that seqtk was installed in that env (<code>conda list | grep seqtk</code>).</li>
-      <li><strong>FastQC runs but HTML missing:</strong> check the output directory path (<code>-o ../results/fastqc/</code>) and ensure you have write permission to that folder.</li>
-      <li><strong>Subsample too small/too big:</strong> choose <code>N</code> appropriate to your machine and goals (10k–1M reads common for testing). If using paired-end data, be careful to keep pairs together.</li>
+      <li><strong>On macOS:</strong> <code>open ENCFF535OGL_subset_fastqc.html</code></li>
+      <li><strong>On Linux:</strong> <code>xdg-open ENCFF535OGL_subset_fastqc.html</code></li>
     </ul>
+
+    <h3>How to Read the "Traffic Lights"</h3>
+    <p>When the report opens in your browser, you will see a list of modules on the left, marked with Green Checks (Pass), Orange Exclamation Marks (Warning), or Red Xs (Fail).</p>
+    <p><strong>Do not panic if you see Red.</strong> In wet lab terms, a "Fail" here is like a pH meter beeping. It doesn't always mean the sample is trash; it just means it looks different than a standard genomic DNA library.</p>
+    <p>Since this is high-quality ENCODE data, you should mostly see Green Checks. You might see a warning in "Sequence Duplication" or "Base Sequence Content"—this is often an artifact of the ATAC-seq biology (the Tn5 bias) rather than a technical failure.</p>
+
+    <h2>Troubleshooting</h2>
+    <ul>
+      <li><strong><code>wget</code> command not found:</strong> You might have skipped installing it. Run <code>conda install wget</code> inside your environment.</li>
+      <li><strong><code>seqtk</code> command not found:</strong> Ensure you actually ran <code>conda activate bio-tools</code>.</li>
+      <li><strong>"Directory does not exist":</strong> Check your spelling. Remember, <code>cd ..</code> moves you UP one level. Use <code>pwd</code> to check where you are.</li>
+    </ul>
+
+    <h2>Next Step</h2>
+    <p>You have successfully generated your first quality control report. However, seeing a "Red X" or a "Warning" flag can be alarming if you don't know the context. As we mentioned, ATAC-seq data often looks "wrong" to standard QC tools because of its unique biology.
+
+        In Chapter 5, we will dissect every plot in the FastQC report to learn how to distinguish between a failed experiment and expected biological artifacts. </p>
 
     <div class="chapter-nav">
       <a href="install.html" class="nav-button back">← Back: Conda Setup</a>
       <a href="../index.html" class="nav-button home">Home</a>
       <a href="fastqc-results.html" class="nav-button next">Next: FASTQC Results →</a>
     </div>
-
   </div>
 
   <script>
@@ -201,3 +130,4 @@ ls -lh</pre>
   </script>
 </body>
 </html>
+
